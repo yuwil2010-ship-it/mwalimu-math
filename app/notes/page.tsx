@@ -1,0 +1,298 @@
+"use client"
+import { Suspense, useState, useMemo, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { Check, Smartphone, Calculator, ArrowLeft, Globe, MessageCircle } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { validatePaymentForm, normalizeTZPhone } from "@/lib/validation"
+
+const syllabus: Record<string, string[]> = {
+  "Form I": ["Concepts of Mathematics","Numbers I","Fractions","Decimals and Percentages","Metric Units","Approximations","Introduction to Geometry","Algebra","Numbers II","Ratio, Profit and Loss","Coordinate Geometry","Perimeters and Areas"],
+  "Form II": ["Exponents and Radicals","Algebra","Quadratic Equations","Logarithms","Congruence","Similarity","Geometrical Transformation","Pythagoras Theorem","Trigonometry","Sets","Statistics"],
+  "Form III": ["Relations","Functions","Statistics","Rates and Variations","Sequences and Series","Circles","Earth as a Sphere","Accounting"],
+  "Form IV": ["Coordinate Geometry","Areas and Perimeters","Three Dimensional Figures","Probability","Trigonometry","Vectors","Matrices and Transformation","Linear Programming"],
+  "Form V": ["Sets","Logic","Coordinate Geometry","Functions","Algebra","Trigonometry","Linear Programming","Differentiation","Integration"],
+  "Form VI": ["Coordinate Geometry II","Vectors","Hyperbolic Functions","Statistics","Probability","Complex Numbers","Differential Equations","Numerical Methods"],
+  "Mazoezi": [],
+  "Bonus": []
+}
+const mazoeziByForm: Record<string, string[]> = {
+  "Form I": syllabus["Form I"], "Form II": syllabus["Form II"], "Form III": syllabus["Form III"],
+  "Form IV": syllabus["Form IV"], "Form V": syllabus["Form V"], "Form VI": syllabus["Form VI"],
+}
+const bonusForms = ["Form II NECTA", "Form IV NECTA", "Form VI NECTA"]
+const currentYear = new Date().getFullYear()
+const nectaYears = Array.from({ length: 5 }, (_, i) => `Necta ${currentYear - i}`)
+
+const translations = {
+  sw: { rudi: "Rudi Nyumbani", title: "Chagua Topic Unayohitaji", muhtasari: "Muhtasari wa Malipo", empty: "Hujachagua topic bado.", jumla: "Jumla:", chaguaMtandao: "Chagua Mtandao", simuMalipo: "Namba ya Simu ya Malipo", whatsappLabel: "Namba ya WhatsApp ya Kupokea PDF", whatsappNote: "Utapokea PDF kwenye WhatsApp mara baada ya malipo kuthibitishwa", ipo: "Ipo", haijapakiwa: "Haijapakiwa" },
+  en: { rudi: "Back Home", title: "Choose Topic You Need", muhtasari: "Payment Summary", empty: "No topic selected yet.", jumla: "Total:", chaguaMtandao: "Choose Network", simuMalipo: "Payment Phone Number", whatsappLabel: "WhatsApp Number to Receive PDF", whatsappNote: "You will receive PDF on WhatsApp after payment is confirmed", ipo: "Available", haijapakiwa: "Not Uploaded" }
+}
+
+function NotesContent() {
+  const searchParams = useSearchParams()
+  const initialForm = searchParams.get("form") || "Form I"
+  const [activeForm, setActiveForm] = useState(initialForm)
+  const [mazoeziForm, setMazoeziForm] = useState("Form I")
+  const [bonusForm, setBonusForm] = useState("Form II NECTA")
+  const [selected, setSelected] = useState<string[]>([])
+  const [phone, setPhone] = useState("")
+  const [whatsapp, setWhatsapp] = useState("")
+  const [method, setMethod] = useState("M-Pesa")
+  const [lang, setLang] = useState<'sw' | 'en'>('sw')
+  const [availability, setAvailability] = useState<Record<string, boolean>>({})
+  const [loadingTopics, setLoadingTopics] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const tr = translations[lang]
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      setLoadingTopics(true)
+      const { data, error } = await supabase.from('topics_catalog').select('full_key, is_available')
+      if (error) console.error("Fetch topics error:", error)
+      if (!error && data) {
+        const map: Record<string, boolean> = {}
+        data.forEach(row => { map[row.full_key] = row.is_available })
+        setAvailability(map)
+      }
+      setLoadingTopics(false)
+    }
+    fetchAvailability()
+  }, [])
+
+  const getCurrentTopics = () => {
+    if (activeForm === "Mazoezi") return mazoeziByForm[mazoeziForm] || []
+    if (activeForm === "Bonus") return nectaYears
+    return syllabus[activeForm] || []
+  }
+  const getKeyPrefix = () => {
+    if (activeForm === "Mazoezi") return `Mazoezi - ${mazoeziForm}`
+    if (activeForm === "Bonus") return bonusForm
+    return activeForm
+  }
+  const toggleTopic = (topic: string) => {
+    const prefix = getKeyPrefix()
+    const key = `${prefix} - ${topic}`
+    if (!availability[key]) return
+    setSelected(prev => prev.includes(key) ? prev.filter(t => t !== key) : [...prev, key])
+  }
+  const isTopicSelected = (topic: string) => {
+    const prefix = getKeyPrefix()
+    const key = `${prefix} - ${topic}`
+    return selected.includes(key)
+  }
+  const total = useMemo(() => selected.length * 1000, [selected])
+
+  const handleLipa = async () => {
+    if (!phone || !whatsapp || selected.length === 0) {
+      alert("Jaza namba na chagua topic")
+      return
+    }
+
+    // VALIDATION - Zuia namba ya Tigo kwa M-Pesa n.k
+    const validation = validatePaymentForm(phone, whatsapp, method)
+    if (!validation.valid) {
+      alert(validation.error)
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const cleanPhone = normalizeTZPhone(phone)
+      const cleanWa = normalizeTZPhone(whatsapp)
+      const { data: customer, error: custErr } = await supabase.from('customers').upsert(
+        { phone_malipo: cleanPhone, whatsapp_number: cleanWa },
+        { onConflict: 'phone_malipo,whatsapp_number' }
+      ).select().single()
+      if (custErr) throw custErr
+
+      const { data: order, error: orderErr } = await supabase.from('orders').insert({
+        customer_id: customer?.id,
+        phone_malipo: cleanPhone,
+        whatsapp_number: cleanWa,
+        payment_method: method,
+        total_amount: total,
+        items_count: selected.length,
+        status: 'pending',
+        lang: lang
+      }).select().single()
+      if (orderErr) throw orderErr
+
+      const { data: catalogRows } = await supabase.from('topics_catalog').select('id, full_key').in('full_key', selected)
+      const catalogMap = new Map(catalogRows?.map(r => [r.full_key, r.id]) || [])
+
+      const items = selected.map(fullKey => {
+        let category = 'NOTES'
+        let form_name = fullKey.split(' - ')[0]
+        let topic_name = fullKey.split(' - ')[1]
+        if (fullKey.startsWith('Mazoezi')) {
+          const p = fullKey.split(' - ')
+          category = 'MAZOEZI'
+          form_name = p[1]
+          topic_name = p[2]
+        }
+        if (fullKey.includes('NECTA')) {
+          const p = fullKey.split(' - ')
+          category = 'BONUS'
+          form_name = p[0]
+          topic_name = p[1]
+        }
+        return {
+          order_id: order.id,
+          topic_catalog_id: catalogMap.get(fullKey) || null,
+          full_key: fullKey,
+          form_name,
+          category,
+          topic_name,
+          price: 1000
+        }
+      })
+
+      const { error: itemsErr } = await supabase.from('order_items').insert(items)
+      if (itemsErr) throw itemsErr
+
+      await supabase.from('payments').insert({
+        order_id: order.id,
+        method: method,
+        phone: phone,
+        amount: total,
+        status: 'pending'
+      })
+
+      alert("Hongera! Order " + order.order_number + " imehifadhiwa! TZS " + total.toLocaleString())
+      setSelected([])
+    } catch (err: unknown) {
+      console.error("FULL ERROR:", err)
+      const e = err as { message?: string; details?: string; hint?: string }
+      const msg = e?.message || e?.details || e?.hint || JSON.stringify(err)
+      alert("Error halisi: " + msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const currentTopics = getCurrentTopics()
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-[#1d4ed8] border-b border-blue-600 sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-2 font-black text-xl text-white">
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center"><Calculator size={16} className="text-[#1d4ed8]" /></div>
+            Mwalimu Math
+          </div>
+          <div className="flex items-center gap-1 bg-blue-600 border border-blue-500 rounded-full px-3 py-1">
+            <Globe size={14} className="text-white" />
+            <select value={lang} onChange={(e) => setLang(e.target.value === 'en' ? 'en' : 'sw')} className="bg-transparent text-white text-xs font-bold outline-none">
+              <option value="sw" className="text-black">Kiswahili</option>
+              <option value="en" className="text-black">English</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8] mb-4"><ArrowLeft size={16} /> {tr.rudi}</Link>
+          <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {Object.keys(syllabus).map(form => (
+              <button key={form} onClick={() => setActiveForm(form)} className={`px-4 py-2 rounded-full text-sm font-bold border ${activeForm === form ? 'bg-[#1d4ed8] text-white' : 'bg-white'}`}>{form}</button>
+            ))}
+          </div>
+
+          <div className="mt-6 bg-white rounded-2xl border p-4">
+            {activeForm === "Mazoezi" && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {Object.keys(mazoeziByForm).map(f => (
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${mazoeziForm === f ? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
+                ))}
+              </div>
+            )}
+            {activeForm === "Bonus" && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {bonusForms.map(f => (
+                  <button key={f} onClick={() => setBonusForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${bonusForm === f ? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {currentTopics.map(topic => {
+                const prefix = getKeyPrefix()
+                const key = `${prefix} - ${topic}`
+                const isAvailable = availability[key] || false
+                const selectedNow = isTopicSelected(topic)
+                return (
+                  <div key={topic} className={`flex justify-between items-center p-3 rounded-xl border ${selectedNow ? 'bg-blue-50 border-[#1d4ed8]' : 'bg-white'} ${!isAvailable ? 'opacity-60' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => toggleTopic(topic)} className="w-5 h-5 accent-[#1d4ed8]" />
+                      <span className={`text-sm font-medium ${!isAvailable ? 'text-gray-400' : ''}`}>{topic}</span>
+                    </div>
+                    <span className={`text-xs font-bold ${isAvailable ? 'text-green-600' : 'text-gray-400'}`}>{isAvailable ? tr.ipo : tr.haijapakiwa}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border p-5 h-fit sticky top-20">
+          <h3 className="font-bold text-sm">{tr.muhtasari}</h3>
+          {selected.length === 0 ? <p className="text-xs text-gray-500 mt-3">{tr.empty}</p> :
+            <ul className="mt-3 space-y-1 max-h-48 overflow-auto">
+              {selected.map(s => <li key={s} className="text-xs flex gap-2"><Check size={12} className="text-green-500 mt-0.5" />{s}</li>)}
+            </ul>
+          }
+          <div className="border-t mt-4 pt-4 flex justify-between font-black text-sm">
+            <span>{tr.jumla}</span><span className="text-[#1d4ed8]">TZS {total.toLocaleString()}</span>
+          </div>
+          <div className="mt-5">
+            <p className="text-xs font-bold mb-2">{tr.chaguaMtandao}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[{ name: "M-Pesa", color: "bg-red-600" }, { name: "Mixx by Yas", color: "bg-purple-600" }, { name: "Airtel Money", color: "bg-red-500" }, { name: "HaloPesa", color: "bg-orange-500" }].map(m => (
+                <button key={m.name} onClick={() => setMethod(m.name)} className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${method === m.name ? 'border-[#1d4ed8] bg-blue-50' : ''}`}>
+                  <span className={`w-2 h-2 rounded-full ${m.color}`}></span>{m.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-4 space-y-3">
+            <div>
+              <label className="text-xs font-bold">{tr.simuMalipo}</label>
+              <div className="flex items-center border rounded-xl px-3 py-2.5 mt-1 gap-2">
+                <Smartphone size={16} className="text-gray-400" /><input value={phone} onChange={e => setPhone(e.target.value)} placeholder="07xx xxx xxx" className="w-full outline-none text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold">{tr.whatsappLabel}</label>
+              <div className="flex items-center border rounded-xl px-3 py-2.5 mt-1 gap-2">
+                <MessageCircle size={16} className="text-green-500" /><input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="07xx xxx xxx" className="w-full outline-none text-sm" />
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleLipa}
+            disabled={selected.length === 0 || !phone || !whatsapp || submitting}
+            className="w-full mt-5 bg-[#1d4ed8] disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm"
+          >
+            {submitting ? "Inatuma..." : `Lipa TZS ${total.toLocaleString()} kwa ${method}`}
+          </button>
+          <p className="text-xs text-center text-gray-500 mt-3">{tr.whatsappNote}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LoadingFallback() {
+  return <div className="p-10 text-center text-sm">Inapakia...</div>
+}
+
+export default function NotesPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <NotesContent />
+    </Suspense>
+  )
+}
