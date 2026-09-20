@@ -1,233 +1,297 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import {
-  BookOpen, CheckCircle2, Star, Mail, ArrowUp, MapPin, Phone,
-  GraduationCap, Award, FileText, Sparkles, Users, BadgeCheck,
-  Calculator, Globe
-} from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { Check, X, Search, LogOut, Eye, EyeOff, Home } from "lucide-react"
 
-const kitabuData = [
-  { form: "Form I", icon: BookOpen, topics: 12, bg: "from-blue-500 to-blue-600", symbols: ["π", "½", "△", "∑"] },
-  { form: "Form II", icon: Calculator, topics: 11, bg: "from-blue-600 to-[#1d4ed8]", symbols: ["x²", "√", "θ", "a²+b²"] },
-  { form: "Form III", icon: FileText, topics: 8, bg: "from-[#1d4ed8] to-blue-700", symbols: ["f(x)", "○", "≈", "∠"] },
-  { form: "Form IV", icon: Award, topics: 8, bg: "from-blue-700 to-[#1e40af]", symbols: ["→", "P(A)", "[ ]", "∆"] },
-  { form: "Form V", icon: GraduationCap, topics: 9, bg: "from-[#1e40af] to-[#1e3a8a]", symbols: ["d/dx", "∫", "lim", "∧∨"] },
-  { form: "Form VI", icon: Sparkles, topics: 8, bg: "from-[#1e3a8a] to-blue-900", symbols: ["i", "σ", "∑", "∂"] },
-  { form: "Mazoezi", icon: CheckCircle2, topics: 56, bg: "from-blue-700 to-[#172554]", symbols: ["✓", "?", "≠", "∞"] },
-  { form: "Bonus", icon: BadgeCheck, topics: 15, bg: "from-[#1e3a8a] to-[#0B1E42]", symbols: ["2025", "2024", "2023", "NECTA"] },
-]
-
-const t = {
-  sw: {
-    huduma: "Huduma", badge: "Wanafunzi 100+ wameipata",
-    hero1: "Msaidie Mwanafunzi Wako", hero2: "Kufaulu Mathematics",
-    heroDesc: "Nukuu kamili za Mathematics Form I-VI kulingana na syllabus ya Tanzania. PDF tayari kuchapisha na kufundishia nyumbani.",
-    pakuaLong: "Pakua Sasa - TZS 1,000/topic", ofa: "Ofa ya Leo",
-    pdf1: "PDF ya kuchapisha", pdf2: "Chagua topic unayohitaji tu", pdf3: "Pokea WhatsApp papo hapo",
-    chagua: "Chagua Topic Sasa", nukuuTitle: "Nukuu zinazopatikana", nukuuDesc: "Kila kidato kimegawanywa kwa topic - Jumla 71 topics",
-    view: "view notes →", jinsi: "Jinsi Inavyofanya Kazi",
-    s1t: "Lipia kirahisi zaidi", s1d: "Chagua topic, kisha lipia kwa mitandao ya simu",
-    s2t: "Pokea PDF WhatsApp", s2d: "PDF inatumwa moja kwa moja kwenye WhatApp yako ndani ya dakika chache",
-    s3t: "Anza Kujisomea na kufanya mazoezi", s3d: "Chapisha au soma kwenye simu uanze mazoezi ya kukuwezesha kufaulu Mathematics",
-    tayariTitle: "Uko Tayari Kuanza?", tayariDesc: "Chagua topic unayohitaji leo kwa TZS 1,000 tu", pakua: "Pakua Sasa",
-  },
-  en: {
-    huduma: "Services", badge: "100+ Students Got It", hero1: "Help Your Student", hero2: "Excel in Mathematics",
-    heroDesc: "Complete Mathematics Notes Form I-VI based on Tanzania syllabus. Ready to print PDF for home learning.",
-    pakuaLong: "Download Now - TZS 1,000/topic", ofa: "Today's Offer", pdf1: "Printable PDF", pdf2: "Choose only the topic you need", pdf3: "Receive via WhatsApp instantly",
-    chagua: "Choose Topic Now", nukuuTitle: "Available Notes", nukuuDesc: "Each class is divided by topic - Total 71 topics",
-    view: "view notes →", jinsi: "How It Works", s1t: "Easy Payment", s1d: "Choose topic, then pay via mobile networks",
-    s2t: "Receive PDF on WhatsApp", s2d: "PDF is sent directly to your WhatsApp within a few minutes",
-    s3t: "Start Reading & Practicing", s3d: "Print or read on phone and start practicing to pass Mathematics",
-    tayariTitle: "Ready to Start?", tayariDesc: "Choose the topic you need today for TZS 1,000 only", pakua: "Download Now",
-  }
+type TopicRow = {
+  id: number
+  full_key: string
+  form_name: string
+  category: string
+  topic_name: string
+  is_available: boolean
+  has_pdf: boolean
+  storage_path: string | null
 }
 
-export default function HomePage() {
-  const [lang, setLang] = useState<'sw' | 'en'>('sw')
-  const tr = t[lang]
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+const FORMS = ["Form I", "Form II", "Form III", "Form IV", "Form V", "Form VI", "Mazoezi", "Bonus"]
+
+export default function AdminPage() {
+  const [authed, setAuthed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("mwalimu_admin_authed") === "true"
+    }
+    return false
+  })
+  const [password, setPassword] = useState("")
+  const [showPass, setShowPass] = useState(false)
+  const [topics, setTopics] = useState<TopicRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filterForm, setFilterForm] = useState("Form I")
+  const [search, setSearch] = useState("")
+  const [savingId, setSavingId] = useState<number | null>(null)
+
+  const ADMIN_PASS = "mwalimu2026" // badilisha baadaye uweke kwenye env
+
+  useEffect(() => {
+    if (!authed) return
+    const load = async () => {
+      const { data, error } = await supabase
+        .from("topics_catalog")
+        .select("*")
+        .order("full_key", { ascending: true })
+
+      if (!error && data) {
+        let filtered = data as TopicRow[]
+        if (filterForm !== "All") {
+          if (filterForm === "Mazoezi") {
+            filtered = filtered.filter(t => t.category === "MAZOEZI")
+          } else if (filterForm === "Bonus") {
+            filtered = filtered.filter(t => t.category === "BONUS")
+          } else {
+            filtered = filtered.filter(t => t.form_name === filterForm || t.full_key.startsWith(filterForm))
+          }
+        }
+        setTopics(filtered)
+      }
+      setLoading(false)
+    }
+    load()
+  }, [authed, filterForm])
+
+  const fetchTopics = async () => {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from("topics_catalog")
+      .select("*")
+      .order("full_key", { ascending: true })
+
+    if (!error && data) {
+      let filtered = data as TopicRow[]
+      if (filterForm !== "All") {
+        if (filterForm === "Mazoezi") {
+          filtered = filtered.filter(t => t.category === "MAZOEZI")
+        } else if (filterForm === "Bonus") {
+          filtered = filtered.filter(t => t.category === "BONUS")
+        } else {
+          filtered = filtered.filter(t => t.form_name === filterForm || t.full_key.startsWith(filterForm))
+        }
+      }
+      setTopics(filtered)
+    }
+    setLoading(false)
+  }
+
+  const handleLogin = () => {
+    if (password === ADMIN_PASS) {
+      setAuthed(true)
+      localStorage.setItem("mwalimu_admin_authed", "true")
+    } else {
+      alert("Password si sahihi!")
+    }
+  }
+
+  const toggleAvailability = async (row: TopicRow) => {
+    setSavingId(row.id)
+    const newVal = !row.is_available
+
+    // Lazima iwe na PDF ndipo uwashwe
+    if (newVal && !row.storage_path) {
+      const ok = confirm(`Topic "${row.full_key}" haina storage_path (PDF). Unataka kuiwasha tu bila PDF?`)
+      if (!ok) {
+        setSavingId(null)
+        return
+      }
+    }
+
+    const { error } = await supabase
+      .from("topics_catalog")
+      .update({ is_available: newVal })
+      .eq("id", row.id)
+
+    if (error) {
+      alert("Error: " + error.message)
+    } else {
+      setTopics(prev => prev.map(t => t.id === row.id ? { ...t, is_available: newVal } : t))
+    }
+    setSavingId(null)
+  }
+
+  const toggleHasPdf = async (row: TopicRow) => {
+    setSavingId(row.id)
+    const { error } = await supabase
+      .from("topics_catalog")
+      .update({ has_pdf: !row.has_pdf })
+      .eq("id", row.id)
+    if (!error) {
+      setTopics(prev => prev.map(t => t.id === row.id ? { ...t, has_pdf: !t.has_pdf } : t))
+    }
+    setSavingId(null)
+  }
+
+  const bulkAction = async (action: "on" | "off") => {
+    if (!confirm(`Unataka ${action === "on" ? "KUWASHA" : "KUZIMA"} topics zote za ${filterForm}?`)) return
+    const ids = filteredTopics.map(t => t.id)
+    const { error } = await supabase
+      .from("topics_catalog")
+      .update({ is_available: action === "on" })
+      .in("id", ids)
+    if (error) alert(error.message)
+    else fetchTopics()
+  }
+
+  const filteredTopics = topics.filter(t => {
+    if (!search) return true
+    return t.full_key.toLowerCase().includes(search.toLowerCase()) || t.topic_name.toLowerCase().includes(search.toLowerCase())
+  })
+
+  if (!authed) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl border p-8 w-full max-w-sm">
+          <h1 className="text-xl font-black mb-2">Admin - Mwalimu Math</h1>
+          <p className="text-sm text-gray-500 mb-6">Ingiza password kuendelea</p>
+          <div className="relative">
+            <input
+              type={showPass ? "text" : "password"}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full border rounded-xl px-4 py-3 pr-10 text-sm outline-none focus:border-[#1d4ed8]"
+              onKeyDown={e => e.key === "Enter" && handleLogin()}
+            />
+            <button onClick={() => setShowPass(!showPass)} className="absolute right-3 top-3">
+              {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          <button onClick={handleLogin} className="w-full mt-4 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm">
+            Ingia
+          </button>
+          <p className="text-xs text-gray-400 mt-4 text-center">Default: mwalimu2026 (badilisha kwenye code)</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <header className="sticky top-0 z-50 bg-[#1d4ed8] border-b border-blue-600">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-[#1d4ed8] text-white sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2 font-black text-xl text-white">
-            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center"><Calculator size={20} className="text-[#1d4ed8]"/></div>
-            Mwalimu Math
-          </div>
-          <div className="flex items-center gap-5">
-            <nav className="hidden md:flex gap-6 text-sm font-medium text-white">
-              <a href="#ndani" className="hover:text-yellow-200">{tr.huduma}</a>
-            </nav>
-            <div className="relative flex items-center gap-1 bg-blue-600 border border-blue-500 rounded-full px-3 py-1">
-              <Globe size={14} className="text-white"/>
-              <select value={lang} onChange={(e)=> {const val = e.target.value; setLang(val === 'en'? 'en' : 'sw')}} className="bg-transparent text-white text-xs font-bold outline-none">
-                <option value="sw" className="text-black">Kiswahili</option>
-                <option value="en" className="text-black">English</option>
-              </select>
-            </div>
+          <h1 className="font-black">Mwalimu Math - Admin Panel</h1>
+          <div className="flex gap-2 items-center">
+            <Link href="/notes" target="_blank" className="text-xs bg-blue-600 px-3 py-1.5 rounded-full">Tazama Site</Link>
+            <button onClick={() => { localStorage.removeItem("mwalimu_admin_authed"); setAuthed(false) }} className="p-2 bg-blue-600 rounded-full">
+              <LogOut size={14} />
+            </button>
           </div>
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto px-4 py-8 md:py-12 grid md:grid-cols-2 gap-8 items-center">
-        <div>
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-[#1d4ed8] px-3 py-1 rounded-full text-xs font-bold mb-3">
-            <Users size={14}/> {tr.badge}
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
-            {tr.hero1} <span className="text-[#1d4ed8]">{tr.hero2}</span>
-          </h1>
-          <p className="mt-3 text-gray-600 text-sm">{tr.heroDesc}</p>
-          <div className="mt-5 flex gap-3">
-            <Link href="/notes" className="bg-[#1d4ed8] text-white px-7 py-3 rounded-full font-bold text-sm">{tr.pakuaLong}</Link>
-          </div>
-        </div>
-        <div className="bg-white border-2 border-blue-100 rounded-xl p-5 shadow-xl relative">
-          <div className="absolute -top-2 -right-2 bg-red-500 text-white text- font-black px-2.5 py-1 rounded-full">-50% OFF</div>
-          <h3 className="font-bold">{tr.ofa}</h3>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black text-[#1d4ed8]">1,000</span>
-            <span className="text-xs">TZS / topic</span>
-            <span className="line-through text-gray-400 ml-auto text-xs">2,000</span>
-          </div>
-          <ul className="mt-3 space-y-1.5 text-xs">
-            <li className="flex gap-2"><CheckCircle2 size={14} className="text-green-500"/>{tr.pdf1}</li>
-            <li className="flex gap-2"><CheckCircle2 size={14} className="text-green-500"/>{tr.pdf2}</li>
-            <li className="flex gap-2"><CheckCircle2 size={14} className="text-green-500"/>{tr.pdf3}</li>
-          </ul>
-          <Link href="/notes" className="mt-4 w-full bg-[#1d4ed8] text-white py-2.5 rounded-xl font-bold flex justify-center text-sm">{tr.chagua}</Link>
-        </div>
-      </section>
-
-      {/* FRONT PAGE - BLUE VARIATION ONLY, ICON LEFT TOP, FORM CENTER */}
-      <section id="ndani" className="bg-gray-50 py-10 px-4">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-extrabold text-center">{tr.nukuuTitle}</h2>
-          <p className="text-center text-gray-600 mt-1 text-sm">{tr.nukuuDesc}</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            {kitabuData.map((item) => (
-              <div key={item.form} className="bg-white rounded-2xl border overflow-hidden hover:shadow-xl transition group flex flex-col">
-                <div className={`h-36 bg-gradient-to-br ${item.bg} relative flex items-center justify-center overflow-hidden`}>
-                  {/* Formula background - low opacity, visible far */}
-                  <div className="absolute inset-0 opacity-[0.18]">
-                    <div className="absolute top-6 left-4 text-white text-3xl font-black rotate-12 blur-[0.5px]">{item.symbols[0]}</div>
-                    <div className="absolute top-10 right-6 text-white text-xl font-bold -rotate-12 blur-[0.5px]">{item.symbols[1]}</div>
-                    <div className="absolute bottom-10 left-6 text-white/70 text-lg blur-[0.3px]">{item.symbols[2]}</div>
-                    <div className="absolute bottom-6 right-4 text-white/50 text-sm">{item.symbols[3]}</div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl font-black opacity-[0.05]">∑</div>
-                  </div>
-
-                  {/* Icon kushoto juu - inabaki palepale */}
-                  <div className="absolute top-3 left-3 z-20">
-                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md">
-                      <item.icon size={18} className="text-[#1d4ed8]"/>
-                    </div>
-                  </div>
-
-                  {/* Badge kulia juu sambamba na icon */}
-                  <div className="absolute top-3 right-3 z-20">
-                    <span className="text- bg-white/20 backdrop-blur text-white px-2.5 py-1 rounded-full font-bold border border-white/20">{item.topics} Topics</span>
-                  </div>
-
-                  {/* Jina la kidato katikati */}
-                  <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                    <h4 className="font-black text-white text-xl tracking-tight drop-shadow-sm">{item.form}</h4>
-                  </div>
-                </div>
-
-                <div className="p-3.5 bg-white">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#1d4ed8]"></div>
-                      <span className="text- font-bold text-gray-700">{item.topics} {lang === 'sw'? 'Mada' : 'Topics'}</span>
-                    </div>
-                    <Link href={`/notes?form=${item.form}`} className="text- font-black text-[#1d4ed8] group-hover:underline">{tr.view}</Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PAYMENT - ALIGNED 2x2 GRID, SAME SIZE */}
-      <section id="jinsi" className="py-10 px-4 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-extrabold text-center">{tr.jinsi}</h2>
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
-          <div className="border rounded-xl p-5 text-center">
-            <div className="w-10 h-10 bg-[#1d4ed8] text-white rounded-full flex items-center justify-center mx-auto font-black text-sm">1</div>
-            <h4 className="font-bold mt-3 text-sm">{tr.s1t}</h4>
-            <p className="text-xs text-gray-600 mt-1.5">{tr.s1d}</p>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {["M-Pesa", "Mixx by Yas", "Airtel Money", "HaloPesa"].map(m => (
-                <div key={m} className="h-11 flex items-center justify-center text- font-bold border rounded-lg bg-gray-50 text-gray-700">
-                  {m}
-                </div>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-2xl border p-4 mb-6">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => { setLoading(true); setFilterForm("All") }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filterForm === "All" ? "bg-[#1d4ed8] text-white" : "bg-gray-50"}`}>All ({topics.length})</button>
+              {FORMS.map(f => (
+                <button key={f} onClick={() => { setLoading(true); setFilterForm(f) }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filterForm === f ? "bg-[#1d4ed8] text-white" : "bg-gray-50"}`}>
+                  {f}
+                </button>
               ))}
             </div>
-          </div>
-          <div className="border rounded-xl p-5 text-center">
-            <div className="w-10 h-10 bg-[#1d4ed8] text-white rounded-full flex items-center justify-center mx-auto font-black text-sm">2</div>
-            <h4 className="font-bold mt-3 text-sm">{tr.s2t}</h4>
-            <p className="text-xs text-gray-600 mt-1.5">{tr.s2d}</p>
-          </div>
-          <div className="border rounded-xl p-5 text-center">
-            <div className="w-10 h-10 bg-[#1d4ed8] text-white rounded-full flex items-center justify-center mx-auto font-black text-sm">3</div>
-            <h4 className="font-bold mt-3 text-sm">{tr.s3t}</h4>
-            <p className="text-xs text-gray-600 mt-1.5">{tr.s3d}</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="ushuhuda" className="bg-blue-50/50 py-10 px-4">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-4">
-          {[
-            { name: "Asha J. - Form I", text: "Nilinunua topic 5 za kidato cha kwanza kwa 5,000 tu, nikafaulu B kwenye mtihani wa mwisho wa mwaka." },
-            { name: "Baraka M. - Mzazi", text: "Nimependa mfumo wa kuchagua topic. Sihitaji kununua kitabu kizima. Naangalia madhaifu ya mwanangu kisha namnunulia." },
-            { name: "Neema K. - Form VI", text: "Calculus notes ziko vizuri sana, step by step. Worth kila shilingi." },
-          ].map((t,i)=>(
-            <div key={i} className="bg-white p-5 rounded-xl border">
-              <div className="flex text-yellow-400"><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/></div>
-              <p className="mt-2 text-xs">{`"${t.text}"`}</p>
-              <p className="mt-2 font-bold text-">{t.name}</p>
+            <div className="flex items-center gap-2">
+              <Link href="/" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border bg-gray-50 hover:bg-gray-100">
+                <Home size={14} /> Rudi Nyumbani
+              </Link>
+              <button
+                onClick={() => { localStorage.removeItem("mwalimu_admin_authed"); setAuthed(false); setPassword("") }}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-red-600 text-white hover:bg-red-700"
+              >
+                <LogOut size={14} /> Logout
+              </button>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      <section className="bg-white py-10 px-4 text-center border-t">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-black">{tr.tayariTitle}</h2>
-        <p className="mt-2 text-gray-700 text-sm">{tr.tayariDesc}</p>
-        <Link href="/notes" className="inline-block mt-5 bg-[#1d4ed8] text-white px-8 py-3 rounded-full font-black text-sm">{tr.pakua}</Link>
-      </section>
+          <div className="flex flex-wrap gap-3 items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tafuta topic..." className="pl-9 pr-4 py-2 border rounded-full text-xs w-64 outline-none" />
+              </div>
+              <span className="text-xs text-gray-500">{filteredTopics.length} topics</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => bulkAction("on")} className="px-4 py-2 bg-green-600 text-white rounded-full text-xs font-bold">Washa Zote ({filterForm})</button>
+              <button onClick={() => bulkAction("off")} className="px-4 py-2 bg-red-600 text-white rounded-full text-xs font-bold">Zima Zote</button>
+              <button onClick={fetchTopics} className="px-4 py-2 bg-gray-100 rounded-full text-xs font-bold">Refresh</button>
+            </div>
+          </div>
+        </div>
 
-      <footer className="bg-[#0B1E42] text-white">
-        <div className="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-4 gap-6">
-          <div>
-            <div className="flex items-center gap-2 font-black text-white"><div className="w-8 h-8 bg-white rounded flex items-center justify-center"><Calculator size={16} className="text-[#0B1E42]"/></div>Mwalimu Math</div>
-            <p className="text- mt-2 text-blue-100">Tunasaidia wanafunzi wa Tanzania kufaulu Mathematics kwa nukuu rahisi na za kueleweka.</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-white text-sm">Links</h4>
-            <ul className="mt-2 text-xs space-y-1.5 text-blue-100"><li><a href="https://www.necta.go.tz" target="_blank" className="hover:text-white">Necta</a></li><li><a href="https://www.moe.go.tz" target="_blank" className="hover:text-white">Wizara ya Elimu</a></li></ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-white text-sm">Contact</h4>
-            <ul className="mt-2 text-xs space-y-1.5 text-blue-100"><li className="flex gap-2"><Phone size={12}/>0757 800 420</li><li className="flex gap-2"><Mail size={12}/>yuwil2010@gmail.com</li><li className="flex gap-2"><MapPin size={12}/>P.O. Box 150 Mlandizi, Kibaha, Pwani</li></ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-white text-sm">Location</h4>
-            <iframe className="mt-2 w-full h-28 rounded-xl border-0" loading="lazy" src="https://maps.google.com/maps?q=Mlandizi%2C%20Kibaha%2C%20Pwani%2C%20Tanzania&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
+        <div className="bg-white rounded-2xl border overflow-hidden">
+          <div className="overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-xs text-gray-500">
+                <tr>
+                  <th className="text-left px-4 py-3">Topic (full_key)</th>
+                  <th className="text-left px-4 py-3">PDF?</th>
+                  <th className="text-left px-4 py-3">Storage Path</th>
+                  <th className="text-center px-4 py-3">Ipo / Haijapakiwa</th>
+                  <th className="text-center px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={5} className="text-center py-10 text-gray-400">Inapakia...</td></tr>
+                ) : filteredTopics.length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-10 text-gray-400">Hakuna topic</td></tr>
+                ) : (
+                  filteredTopics.map(row => (
+                    <tr key={row.id} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-xs">{row.full_key}</div>
+                        <div className="text-[10px] text-gray-400">{row.category} • {row.form_name}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => toggleHasPdf(row)} className={`text-[10px] px-2 py-1 rounded-full font-bold ${row.has_pdf ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {row.has_pdf ? "PDF Ipo" : "Hakuna PDF"}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-[11px] text-gray-500 max-w-[200px] truncate" title={row.storage_path || ""}>
+                        {row.storage_path || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full font-bold ${row.is_available ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+                          {row.is_available ? <><Check size={10} /> Ipo</> : <><X size={10} /> Haijapakiwa</>}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          disabled={savingId === row.id}
+                          onClick={() => toggleAvailability(row)}
+                          className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${row.is_available ? "bg-red-600 text-white hover:bg-red-700" : "bg-[#1d4ed8] text-white hover:bg-blue-700"} disabled:opacity-50`}
+                        >
+                          {savingId === row.id ? "..." : row.is_available ? "ZIMA" : "WASHA"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-        <div className="border-t border-blue-900 py-3 px-4 flex justify-between items-center max-w-7xl mx-auto text- text-blue-200">
-          <span>© 2026 Mwalimu Math. All rights reserved.</span>
-          <button onClick={scrollToTop} className="w-7 h-7 bg-white text-blue-900 rounded-full flex items-center justify-center"><ArrowUp size={12}/></button>
+
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs">
+          <p className="font-bold mb-1">Jinsi ya kutumia:</p>
+          <ul className="list-disc ml-4 space-y-1 text-gray-700">
+            <li><b>WASHA</b> = Topic inaonekana <b>Ipo</b> kwenye mwalimu-math.vercel.app/notes na mteja anaweza kui-check</li>
+            <li><b>ZIMA</b> = Topic inaonekana <b>Haijapakiwa</b> na checkbox imezima</li>
+            <li>Baada ya ku-upload PDF kwenda Storage, hakikisha <b>storage_path</b> imejazwa na <b>has_pdf</b> ni true, ndipo uwasha</li>
+            <li>Buttons za <b>Washa Zote / Zima Zote</b> zinafanya kazi kwa filter uliochagua (mfano Form I pekee)</li>
+          </ul>
         </div>
-      </footer>
-    </main>
+      </div>
+    </div>
   )
 }

@@ -1,7 +1,8 @@
 "use client"
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { supabase } from "@/lib/supabase"
-import { Check, X, Search, LogOut, Eye, EyeOff } from "lucide-react"
+import { Check, X, Search, LogOut, Eye, EyeOff, Home } from "lucide-react"
 
 type TopicRow = {
   id: number
@@ -179,7 +180,7 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="font-black">Mwalimu Math - Admin Panel</h1>
           <div className="flex gap-2 items-center">
-            <a href="/notes" target="_blank" className="text-xs bg-blue-600 px-3 py-1.5 rounded-full">Tazama Site</a>
+            <Link href="/notes" target="_blank" className="text-xs bg-blue-600 px-3 py-1.5 rounded-full">Tazama Site</Link>
             <button onClick={() => { localStorage.removeItem("mwalimu_admin_authed"); setAuthed(false) }} className="p-2 bg-blue-600 rounded-full">
               <LogOut size={14} />
             </button>
@@ -189,13 +190,26 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="bg-white rounded-2xl border p-4 mb-6">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button onClick={() => { setLoading(true); setFilterForm("All") }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filterForm === "All" ? "bg-[#1d4ed8] text-white" : "bg-gray-50"}`}>All ({topics.length})</button>
-            {FORMS.map(f => (
-              <button key={f} onClick={() => { setLoading(true); setFilterForm(f) }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filterForm === f ? "bg-[#1d4ed8] text-white" : "bg-gray-50"}`}>
-                {f}
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => { setLoading(true); setFilterForm("All") }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filterForm === "All" ? "bg-[#1d4ed8] text-white" : "bg-gray-50"}`}>All ({topics.length})</button>
+              {FORMS.map(f => (
+                <button key={f} onClick={() => { setLoading(true); setFilterForm(f) }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filterForm === f ? "bg-[#1d4ed8] text-white" : "bg-gray-50"}`}>
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border bg-gray-50 hover:bg-gray-100">
+                <Home size={14} /> Rudi Nyumbani
+              </Link>
+              <button
+                onClick={() => { localStorage.removeItem("mwalimu_admin_authed"); setAuthed(false); setPassword("") }}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-red-600 text-white hover:bg-red-700"
+              >
+                <LogOut size={14} /> Logout
               </button>
-            ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-3 items-center justify-between">
