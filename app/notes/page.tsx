@@ -29,6 +29,8 @@ const translations = {
   en: { rudi: "Back Home", title: "Choose Topic You Need", muhtasari: "Payment Summary", empty: "No topic selected yet.", jumla: "Total:", chaguaMtandao: "Choose Network", simuMalipo: "Payment Phone Number", whatsappLabel: "WhatsApp Number to Receive PDF", whatsappNote: "You will receive PDF on WhatsApp after payment is confirmed", ipo: "Available", haijapakiwa: "Not Uploaded" }
 }
 
+type CatalogRow = { id: string; full_key: string; file_path: string | null }
+
 function NotesContent() {
   const searchParams = useSearchParams()
   const initialForm = searchParams.get("form") || "Form I"
@@ -97,6 +99,7 @@ function NotesContent() {
     try {
       const cleanPhone = normalizeTZPhone(phone)
       const cleanWa = normalizeTZPhone(whatsapp)
+
       const { data: customer, error: custErr } = await supabase.from('customers').upsert(
         { phone_malipo: cleanPhone, whatsapp_number: cleanWa },
         { onConflict: 'phone_malipo,whatsapp_number' }
@@ -115,8 +118,10 @@ function NotesContent() {
       }).select().single()
       if (orderErr) throw orderErr
 
-      const { data: catalogRows } = await supabase.from('topics_catalog').select('id, full_key').in('full_key', selected)
-      const catalogMap = new Map(catalogRows?.map(r => [r.full_key, r.id]) || [])
+      const { data: catalogRows } = await supabase.from('topics_catalog').select('id, full_key, file_path').in('full_key', selected)
+      const catalogMap = new Map<string, CatalogRow>(
+        (catalogRows as CatalogRow[] | null)?.map(r => [r.full_key, r]) ?? []
+      )
 
       const items = selected.map(fullKey => {
         let category = 'NOTES'
@@ -134,13 +139,15 @@ function NotesContent() {
           form_name = p[0]
           topic_name = p[1]
         }
+        const catalog = catalogMap.get(fullKey)
         return {
           order_id: order.id,
-          topic_catalog_id: catalogMap.get(fullKey) || null,
+          topic_catalog_id: catalog?.id || null,
           full_key: fullKey,
           form_name,
           category,
           topic_name,
+          file_path: catalog?.file_path || null,
           price: 1000
         }
       })
@@ -151,19 +158,31 @@ function NotesContent() {
       await supabase.from('payments').insert({
         order_id: order.id,
         method: method,
-        phone: phone,
+        phone: cleanPhone,
         amount: total,
         status: 'pending'
       })
 
-      alert("Hongera! Order " + order.order_number + " imehifadhiwa! TZS " + total.toLocaleString())
-      setSelected([])
-    } catch (err: unknown) {
+      const res = await fetch("/api/snippe/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reference: order.order_number,
+          amount: total,
+          phone: cleanPhone,
+          topic: selected[0] || "Mwalimu Math Notes",
+          form: activeForm
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Imeshindwa kutengeneza link ya malipo")
+
+      window.location.href = data.checkout_url
+
+    } catch (err) {
       console.error("FULL ERROR:", err)
-      const e = err as { message?: string; details?: string; hint?: string }
-      const msg = e?.message || e?.details || e?.hint || JSON.stringify(err)
-      alert("Error halisi: " + msg)
-    } finally {
+      const message = err instanceof Error ? err.message : JSON.stringify(err)
+      alert("Error halisi: " + message)
       setSubmitting(false)
     }
   }
@@ -190,7 +209,6 @@ function NotesContent() {
 
       <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
-          {/* ROW MPYA - Rudi Nyumbani + Login */}
           <div className="flex justify-between items-center mb-4">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8]">
               <ArrowLeft size={16} /> {tr.rudi}
