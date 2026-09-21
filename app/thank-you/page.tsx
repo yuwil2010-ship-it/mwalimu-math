@@ -1,14 +1,33 @@
 "use client"
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Check, Download, ArrowLeft, MessageCircle } from "lucide-react"
+import { Check, Download, ArrowLeft, MessageCircle, Loader2 } from "lucide-react"
 
 function ThankYouContent() {
   const params = useSearchParams()
   const topic = params.get("topic") || "Algebraic Expressions"
   const form = params.get("form") || "Form II"
   const ref = params.get("reference") || "REF-2025-8392"
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const handleDownload = () => {
+    setIsDownloading(true)
+    // Tunatumia anchor badala ya window.location.href ili kuepuka ESLint error
+    const link = document.createElement("a")
+    link.href = `/api/download/${ref}`
+    link.target = "_blank"
+    link.rel = "noopener noreferrer"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setTimeout(() => setIsDownloading(false), 3000)
+  }
+
+  const handleWhatsApp = () => {
+    const msg = `Habari Mwalimu Math, nimelipia ${form} - ${topic} Ref: ${ref}. Naomba link ya kupakua.`
+    window.open(`https://wa.me/255XXXXXXXXX?text=${encodeURIComponent(msg)}`, "_blank")
+  }
 
   return (
     <div className="min-h-screen bg-[#0a1931] flex flex-col">
@@ -29,12 +48,23 @@ function ThankYouContent() {
             <div className="flex justify-between mt-2"><span className="text-gray-500">Bei:</span><span className="font-bold text-[#0a1931]">TZS 1,000/=</span></div>
             <div className="flex justify-between mt-2"><span className="text-gray-500">Ref:</span><span className="font-bold text-xs">{ref}</span></div>
           </div>
-          <button className="w-full mt-6 bg-[#d4af37] text-[#0a1931] font-black py-3 rounded-xl flex items-center justify-center gap-2">
-            <Download size={18}/> Pakua PDF Sasa
+
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="w-full mt-6 bg-[#d4af37] text-[#0a1931] font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-[#c19b2e] disabled:opacity-70"
+          >
+            {isDownloading? <Loader2 size={18} className="animate-spin"/> : <Download size={18}/>}
+            {isDownloading? "Inapakua..." : "Pakua PDF Sasa"}
           </button>
-          <button className="w-full mt-3 bg-green-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+
+          <button
+            onClick={handleWhatsApp}
+            className="w-full mt-3 bg-green-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700"
+          >
             <MessageCircle size={18}/> Tuma WhatsApp
           </button>
+
           <Link href="/notes" className="inline-flex items-center gap-2 text-xs font-bold text-gray-600 mt-6">
             <ArrowLeft size={14}/> Rudi kwenye Notes
           </Link>
