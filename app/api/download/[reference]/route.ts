@@ -40,12 +40,14 @@ export async function GET(
     return NextResponse.json({ error: "File path missing in database" }, { status: 404 })
   }
 
-  // Bucket yako ni topic-pdf
-  const bucket = "topic-pdf"
+  // Bucket sahihi kutoka screenshot yako ni topic-pdfs (na s)
+  const bucket = "topic-pdfs"
   let cleanPath = filePath
   
-  // Kama file_path bado ina prefix ya bucket (topic-pdf/Form-IV/...), iondoe
-  if (filePath.startsWith("topic-pdf/")) {
+  // Ondoa prefix kama file_path ina topic-pdfs/ au topic-pdf/ mbele
+  if (filePath.startsWith("topic-pdfs/")) {
+    cleanPath = filePath.replace("topic-pdfs/", "")
+  } else if (filePath.startsWith("topic-pdf/")) {
     cleanPath = filePath.replace("topic-pdf/", "")
   }
 
@@ -54,19 +56,10 @@ export async function GET(
     .createSignedUrl(cleanPath, 60 * 5)
 
   if (signErr || !signed?.signedUrl) {
-    // Fallback: jaribu bucket notes kama file ipo huko
-    const fallbackBucket = "notes"
-    const { data: signed2, error: signErr2 } = await supabase.storage
-      .from(fallbackBucket)
-      .createSignedUrl(filePath, 60 * 5)
-    
-    if (signErr2 || !signed2?.signedUrl) {
-      return NextResponse.json({ 
-        error: `Failed to create signed URL! object not found. Tried bucket '${bucket}' with path '${cleanPath}' and bucket '${fallbackBucket}' with path '${filePath}'. Error: ${signErr?.message}`,
-        tried: { bucket, cleanPath, fallbackBucket, filePath }
-      }, { status: 404 })
-    }
-    return NextResponse.redirect(signed2.signedUrl)
+    return NextResponse.json({ 
+      error: `Failed to create signed URL! Bucket '${bucket}' path '${cleanPath}' not found. Original file_path: '${filePath}'. Error: ${signErr?.message}`,
+      debug: { bucket, cleanPath, original: filePath, error: signErr?.message }
+    }, { status: 404 })
   }
 
   return NextResponse.redirect(signed.signedUrl)
