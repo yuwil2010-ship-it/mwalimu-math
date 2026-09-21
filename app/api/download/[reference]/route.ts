@@ -16,7 +16,6 @@ export async function GET(
     return NextResponse.json({ error: "Reference missing" }, { status: 400 })
   }
 
-  // Tafuta order kwa order_number
   const { data: order, error: orderErr } = await supabase
     .from("orders")
     .select("id, status, order_number")
@@ -26,11 +25,6 @@ export async function GET(
   if (orderErr || !order) {
     return NextResponse.json({ error: "Order not found: " + reference }, { status: 404 })
   }
-
-  // Unaweza kuongeza check ya paid baadaye - kwa testing tunaachia
-  // if (order.status !== 'paid') {
-  //   return NextResponse.json({ error: "Payment not confirmed yet" }, { status: 403 })
-  // }
 
   const { data: items, error: itemsErr } = await supabase
     .from("order_items")
@@ -46,12 +40,33 @@ export async function GET(
     return NextResponse.json({ error: "File path missing in database" }, { status: 404 })
   }
 
+  // Bucket yako ni topic-pdf
+  const bucket = "topic-pdf"
+  let cleanPath = filePath
+  
+  // Kama file_path bado ina prefix ya bucket (topic-pdf/Form-IV/...), iondoe
+  if (filePath.startsWith("topic-pdf/")) {
+    cleanPath = filePath.replace("topic-pdf/", "")
+  }
+
   const { data: signed, error: signErr } = await supabase.storage
-    .from("notes")
-    .createSignedUrl(filePath, 60 * 5) // link ya dakika 5
+    .from(bucket)
+    .createSignedUrl(cleanPath, 60 * 5)
 
   if (signErr || !signed?.signedUrl) {
-    return NextResponse.json({ error: "Failed to create signed URL: " + signErr?.message }, { status: 500 })
+    // Fallback: jaribu bucket notes kama file ipo huko
+    const fallbackBucket = "notes"
+    const { data: signed2, error: signErr2 } = await supabase.storage
+      .from(fallbackBucket)
+      .createSignedUrl(filePath, 60 * 5)
+    
+    if (signErr2 || !signed2?.signedUrl) {
+      return NextResponse.json({ 
+        error: `Failed to create signed URL! object not found. Tried bucket '${bucket}' with path '${cleanPath}' and bucket '${fallbackBucket}' with path '${filePath}'. Error: ${signErr?.message}`,
+        tried: { bucket, cleanPath, fallbackBucket, filePath }
+      }, { status: 404 })
+    }
+    return NextResponse.redirect(signed2.signedUrl)
   }
 
   return NextResponse.redirect(signed.signedUrl)
