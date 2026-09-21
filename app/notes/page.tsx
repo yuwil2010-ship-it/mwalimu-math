@@ -221,24 +221,25 @@ function NotesContent() {
           </div>
 
           <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
-          <div className="flex flex-wrap gap-2 mt-4">
+          {/* Vidato - Grid iliyonyooka kwa simu na tablet */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-2 mt-4">
             {Object.keys(syllabus).map(form => (
-              <button key={form} onClick={() => setActiveForm(form)} className={`px-4 py-2 rounded-full text-sm font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300'}`}>{form}</button>
+              <button key={form} onClick={() => setActiveForm(form)} className={`w-full px-4 py-2.5 rounded-full text-sm font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}>{form}</button>
             ))}
           </div>
 
           <div className="mt-6 bg-white rounded-2xl border p-4">
             {activeForm === "Mazoezi" && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 mb-4">
                 {Object.keys(mazoeziByForm).map(f => (
-                  <button key={f} onClick={() => setMazoeziForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-3 py-2 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
             {activeForm === "Bonus" && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
                 {bonusForms.map(f => (
-                  <button key={f} onClick={() => setBonusForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] ${bonusForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f} onClick={() => setBonusForm(f)} className={`w-full px-3 py-2 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center ${bonusForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
