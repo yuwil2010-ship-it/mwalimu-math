@@ -29,8 +29,6 @@ const translations = {
   en: { rudi: "Back Home", title: "Choose Topic You Need", muhtasari: "Payment Summary", empty: "No topic selected yet.", jumla: "Total:", chaguaMtandao: "Choose Network", simuMalipo: "Payment Phone Number", whatsappLabel: "WhatsApp Number to Receive PDF", whatsappNote: "You will receive PDF on WhatsApp after payment is confirmed", ipo: "Available", haijapakiwa: "Not Uploaded" }
 }
 
-type CatalogRow = { id: string; full_key: string; file_path: string | null }
-
 function NotesContent() {
   const searchParams = useSearchParams()
   const initialForm = searchParams.get("form") || "Form I"
@@ -118,7 +116,9 @@ function NotesContent() {
       }).select().single()
       if (orderErr) throw orderErr
 
+      // Tunachukua file_path kutoka topics_catalog kwa ajili ya Supabase Storage
       const { data: catalogRows } = await supabase.from('topics_catalog').select('id, full_key, file_path').in('full_key', selected)
+      type CatalogRow = { id: string; full_key: string; file_path: string | null }
       const catalogMap = new Map<string, CatalogRow>(
         (catalogRows as CatalogRow[] | null)?.map(r => [r.full_key, r]) ?? []
       )
@@ -163,6 +163,7 @@ function NotesContent() {
         status: 'pending'
       })
 
+      // Elekeza kwa Snippe - Snippe akimaliza atarudi /thank-you?reference=...
       const res = await fetch("/api/snippe/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,15 +175,28 @@ function NotesContent() {
           form: activeForm
         })
       })
-      const data = await res.json()
+
+      // Snippe API wakati mwingine inarudisha HTML kama route haipo - tunai-detect
+      const contentType = res.headers.get("content-type") || ""
+      let data: { checkout_url?: string; error?: string }
+      if (contentType.includes("application/json")) {
+        data = await res.json()
+      } else {
+        const text = await res.text()
+        console.error("Non-JSON from /api/snippe/create:", text.slice(0, 800))
+        throw new Error(`API /api/snippe/create haipo (Status ${res.status}). Hakikisha ume-push app/api/snippe/create/route.ts kwenye GitHub/Vercel.`)
+      }
+
       if (!res.ok) throw new Error(data.error || "Imeshindwa kutengeneza link ya malipo")
+      if (!data.checkout_url) throw new Error("checkout_url missing kutoka Snippe")
 
       window.location.href = data.checkout_url
 
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("FULL ERROR:", err)
-      const message = err instanceof Error ? err.message : JSON.stringify(err)
-      alert("Error halisi: " + message)
+      const e = err as { message?: string; details?: string; hint?: string }
+      const msg = e?.message || e?.details || e?.hint || JSON.stringify(err)
+      alert("Error halisi: " + msg)
       setSubmitting(false)
     }
   }
