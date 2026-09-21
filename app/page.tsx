@@ -7,15 +7,18 @@ import {
   Calculator, Globe
 } from "lucide-react"
 
+// RANGI MOJA TU - LIGHT BLUE KWA KADI ZOTE
+const LIGHT_BG = "from-[#e0f2fe] to-[#bae6fd]"
+
 const kitabuData = [
-  { form: "Form I", icon: BookOpen, topics: 12, bg: "from-blue-500 to-blue-600", symbols: ["π", "½", "△", "∑"] },
-  { form: "Form II", icon: Calculator, topics: 11, bg: "from-blue-600 to-[#1d4ed8]", symbols: ["x²", "√", "θ", "a²+b²"] },
-  { form: "Form III", icon: FileText, topics: 8, bg: "from-[#1d4ed8] to-blue-700", symbols: ["f(x)", "○", "≈", "∠"] },
-  { form: "Form IV", icon: Award, topics: 8, bg: "from-blue-700 to-[#1e40af]", symbols: ["→", "P(A)", "[ ]", "∆"] },
-  { form: "Form V", icon: GraduationCap, topics: 9, bg: "from-[#1e40af] to-[#1e3a8a]", symbols: ["d/dx", "∫", "lim", "∧∨"] },
-  { form: "Form VI", icon: Sparkles, topics: 8, bg: "from-[#1e3a8a] to-blue-900", symbols: ["i", "σ", "∑", "∂"] },
-  { form: "Mazoezi", icon: CheckCircle2, topics: 56, bg: "from-blue-700 to-[#172554]", symbols: ["✓", "?", "≠", "∞"] },
-  { form: "Bonus", icon: BadgeCheck, topics: 15, bg: "from-[#1e3a8a] to-[#0B1E42]", symbols: ["2025", "2024", "2023", "NECTA"] },
+  { form: "Form I", icon: BookOpen, topics: 12, bg: LIGHT_BG, symbols: ["π", "½", "△", "∑"] },
+  { form: "Form II", icon: Calculator, topics: 11, bg: LIGHT_BG, symbols: ["x²", "√", "θ", "a²+b²"] },
+  { form: "Form III", icon: FileText, topics: 8, bg: LIGHT_BG, symbols: ["f(x)", "○", "≈", "∠"] },
+  { form: "Form IV", icon: Award, topics: 8, bg: LIGHT_BG, symbols: ["→", "P(A)", "[ ]", "∆"] },
+  { form: "Form V", icon: GraduationCap, topics: 9, bg: LIGHT_BG, symbols: ["d/dx", "∫", "lim", "∧∨"] },
+  { form: "Form VI", icon: Sparkles, topics: 8, bg: LIGHT_BG, symbols: ["i", "σ", "∑", "∂"] },
+  { form: "Mazoezi", icon: CheckCircle2, topics: 56, bg: LIGHT_BG, symbols: ["✓", "?", "≠", "∞"] },
+  { form: "Bonus", icon: BadgeCheck, topics: 15, bg: LIGHT_BG, symbols: ["2025", "2024", "2023", "NECTA"] },
 ]
 
 const t = {
@@ -86,7 +89,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="bg-white border-2 border-blue-100 rounded-xl p-5 shadow-xl relative">
-          <div className="absolute -top-2 -right-2 bg-red-500 text-white text- font-black px-2.5 py-1 rounded-full">-50% OFF</div>
+          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">-50% OFF</div>
           <h3 className="font-bold">{tr.ofa}</h3>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-3xl font-black text-[#1d4ed8]">1,000</span>
@@ -102,39 +105,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FRONT PAGE - BLUE VARIATION ONLY, ICON LEFT TOP, FORM CENTER */}
+      {/* FRONT PAGE - LIGHT BLUE ZOTE + FORMULA ZINAONEKANA */}
       <section id="ndani" className="bg-gray-50 py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-extrabold text-center">{tr.nukuuTitle}</h2>
           <p className="text-center text-gray-600 mt-1 text-sm">{tr.nukuuDesc}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
             {kitabuData.map((item) => (
-              <div key={item.form} className="bg-white rounded-2xl border overflow-hidden hover:shadow-xl transition group flex flex-col">
+              <div key={item.form} className="bg-white rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl transition group flex flex-col">
                 <div className={`h-36 bg-gradient-to-br ${item.bg} relative flex items-center justify-center overflow-hidden`}>
-                  {/* Formula background - low opacity, visible far */}
-                  <div className="absolute inset-0 opacity-[0.18]">
-                    <div className="absolute top-6 left-4 text-white text-3xl font-black rotate-12 blur-[0.5px]">{item.symbols[0]}</div>
-                    <div className="absolute top-10 right-6 text-white text-xl font-bold -rotate-12 blur-[0.5px]">{item.symbols[1]}</div>
-                    <div className="absolute bottom-10 left-6 text-white/70 text-lg blur-[0.3px]">{item.symbols[2]}</div>
-                    <div className="absolute bottom-6 right-4 text-white/50 text-sm">{item.symbols[3]}</div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-6xl font-black opacity-[0.05]">∑</div>
+                  {/* Background formula - SASA INAONEKANA VIZURI */}
+                  <div className="absolute inset-0 opacity-[0.45]">
+                    <div className="absolute top-6 left-4 text-blue-900 text-3xl font-black rotate-12">{item.symbols[0]}</div>
+                    <div className="absolute top-10 right-6 text-blue-800 text-2xl font-bold -rotate-12">{item.symbols[1]}</div>
+                    <div className="absolute bottom-10 left-6 text-blue-800/80 text-xl font-bold rotate-6">{item.symbols[2]}</div>
+                    <div className="absolute bottom-6 right-4 text-blue-700/80 text-base font-bold -rotate-6">{item.symbols[3]}</div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-900 text-7xl font-black opacity-[0.12]">∑</div>
                   </div>
 
-                  {/* Icon kushoto juu - inabaki palepale */}
+                  {/* Icon kushoto juu */}
                   <div className="absolute top-3 left-3 z-20">
-                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md border border-blue-100">
                       <item.icon size={18} className="text-[#1d4ed8]"/>
                     </div>
                   </div>
 
-                  {/* Badge kulia juu sambamba na icon */}
+                  {/* Badge kulia juu */}
                   <div className="absolute top-3 right-3 z-20">
-                    <span className="text- bg-white/20 backdrop-blur text-white px-2.5 py-1 rounded-full font-bold border border-white/20">{item.topics} Topics</span>
+                    <span className="text- bg-white/80 backdrop-blur text-blue-800 px-2.5 py-1 rounded-full font-bold border border-blue-200 shadow-sm">{item.topics} Topics</span>
                   </div>
 
-                  {/* Jina la kidato katikati */}
-                  <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                    <h4 className="font-black text-white text-xl tracking-tight drop-shadow-sm">{item.form}</h4>
+                  {/* Jina la kidato katikati - sasa blue-900 ili lionekane juu ya light blue */}
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center mt-2">
+                    <h4 className="font-black text-blue-900 text-xl tracking-tight">{item.form}</h4>
                   </div>
                 </div>
 
@@ -142,9 +145,9 @@ export default function HomePage() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-[#1d4ed8]"></div>
-                      <span className="text- font-bold text-gray-700">{item.topics} {lang === 'sw'? 'Mada' : 'Topics'}</span>
+                      <span className="text-xs font-bold text-gray-700">{item.topics} {lang === 'sw'? 'Mada' : 'Topics'}</span>
                     </div>
-                    <Link href={`/notes?form=${item.form}`} className="text- font-black text-[#1d4ed8] group-hover:underline">{tr.view}</Link>
+                    <Link href={`/notes?form=${item.form}`} className="text-xs font-black text-[#1d4ed8] group-hover:underline">{tr.view}</Link>
                   </div>
                 </div>
               </div>
@@ -163,7 +166,7 @@ export default function HomePage() {
             <p className="text-xs text-gray-600 mt-1.5">{tr.s1d}</p>
             <div className="grid grid-cols-2 gap-2 mt-4">
               {["M-Pesa", "Mixx by Yas", "Airtel Money", "HaloPesa"].map(m => (
-                <div key={m} className="h-11 flex items-center justify-center text- font-bold border rounded-lg bg-gray-50 text-gray-700">
+                <div key={m} className="h-11 flex items-center justify-center text-xs font-bold border rounded-lg bg-gray-50 text-gray-700">
                   {m}
                 </div>
               ))}
@@ -192,7 +195,7 @@ export default function HomePage() {
             <div key={i} className="bg-white p-5 rounded-xl border">
               <div className="flex text-yellow-400"><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/></div>
               <p className="mt-2 text-xs">{`"${t.text}"`}</p>
-              <p className="mt-2 font-bold text-">{t.name}</p>
+              <p className="mt-2 font-bold text-xs">{t.name}</p>
             </div>
           ))}
         </div>
@@ -208,7 +211,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 font-black text-white"><div className="w-8 h-8 bg-white rounded flex items-center justify-center"><Calculator size={16} className="text-[#0B1E42]"/></div>Mwalimu Math</div>
-            <p className="text- mt-2 text-blue-100">Tunasaidia wanafunzi wa Tanzania kufaulu Mathematics kwa nukuu rahisi na za kueleweka.</p>
+            <p className="text-xs mt-2 text-blue-100">Tunasaidia wanafunzi wa Tanzania kufaulu Mathematics kwa nukuu rahisi na za kueleweka.</p>
           </div>
           <div>
             <h4 className="font-bold text-white text-sm">Links</h4>
@@ -223,7 +226,7 @@ export default function HomePage() {
             <iframe className="mt-2 w-full h-28 rounded-xl border-0" loading="lazy" src="https://maps.google.com/maps?q=Mlandizi%2C%20Kibaha%2C%20Pwani%2C%20Tanzania&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
           </div>
         </div>
-        <div className="border-t border-blue-900 py-3 px-4 flex justify-between items-center max-w-7xl mx-auto text- text-blue-200">
+        <div className="border-t border-blue-900 py-3 px-4 flex justify-between items-center max-w-7xl mx-auto text-xs text-blue-200">
           <span>© 2026 Mwalimu Math. All rights reserved.</span>
           <button onClick={scrollToTop} className="w-7 h-7 bg-white text-blue-900 rounded-full flex items-center justify-center"><ArrowUp size={12}/></button>
         </div>
