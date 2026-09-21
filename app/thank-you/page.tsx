@@ -1,9 +1,10 @@
 "use client"
+import { Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Check, Download, ArrowLeft, MessageCircle } from "lucide-react"
 
-export default function ThankYouPage() {
+function ThankYouContent() {
   const params = useSearchParams()
   const topic = params.get("topic") || "Algebraic Expressions"
   const form = params.get("form") || "Form II"
@@ -15,7 +16,6 @@ export default function ThankYouPage() {
         <h1 className="text-white font-black text-lg">MWALIMU <span className="text-[#d4af37]">MATH</span></h1>
         <Link href="/notes" className="text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full">Back to Notes</Link>
       </header>
-
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="bg-white rounded- w-full max-w-md p-8 shadow-2xl text-center">
           <div className="w-16 h-16 bg-[#d4af37] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -23,32 +23,31 @@ export default function ThankYouPage() {
           </div>
           <h1 className="text-xl font-black text-gray-900">Asante! Malipo Yamefanikiwa!</h1>
           <p className="text-sm text-gray-500 mt-2">Notes zako ziko tayari kupakuliwa</p>
-
           <div className="bg-gray-50 rounded-xl p-4 mt-6 text-left text-sm">
             <div className="flex justify-between"><span className="text-gray-500">Form:</span><span className="font-bold">{form}</span></div>
             <div className="flex justify-between mt-2"><span className="text-gray-500">Topic:</span><span className="font-bold">{topic}</span></div>
             <div className="flex justify-between mt-2"><span className="text-gray-500">Bei:</span><span className="font-bold text-[#0a1931]">TZS 1,000/=</span></div>
-            <div className="flex justify-between mt-2"><span className="text-gray-500">Reference:</span><span className="font-bold text-xs">{ref}</span></div>
+            <div className="flex justify-between mt-2"><span className="text-gray-500">Ref:</span><span className="font-bold text-xs">{ref}</span></div>
           </div>
-
           <button className="w-full mt-6 bg-[#d4af37] text-[#0a1931] font-black py-3 rounded-xl flex items-center justify-center gap-2">
             <Download size={18}/> Pakua PDF Sasa
           </button>
           <button className="w-full mt-3 bg-green-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
             <MessageCircle size={18}/> Tuma WhatsApp
           </button>
-
-          <p className="text- text-gray-400 mt-4">PDF itatumwa pia kwenye WhatsApp na Email yako</p>
-
           <Link href="/notes" className="inline-flex items-center gap-2 text-xs font-bold text-gray-600 mt-6">
             <ArrowLeft size={14}/> Rudi kwenye Notes
           </Link>
         </div>
       </div>
-
-      <footer className="border-t border-[#d4af37]/20 py-4 text-center">
-        <p className="text- text-[#d4af37]/70">Mwalimu Math • Notes zote za Syllabus ya NECTA • Msaada: WhatsApp</p>
-      </footer>
     </div>
+  )
+}
+
+export default function ThankYouPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a1931] flex items-center justify-center text-white">Inapakia...</div>}>
+      <ThankYouContent />
+    </Suspense>
   )
 }
