@@ -11,13 +11,16 @@ export async function POST(req: NextRequest) {
       form: string
     }
 
-    if (!process.env.SNIPPE_API_KEY) {
-      throw new Error("SNIPPE_API_KEY missing in .env")
-    }
-
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mwalimu-math.vercel.app"
 
-    // 1. Tengeneza session kwenye Snippe
+    // DEMO MODE: Kama hakuna SNIPPE_API_KEY, ruka malipo ya kweli
+    if (!process.env.SNIPPE_API_KEY) {
+      console.log("DEMO MODE: SNIPPE_API_KEY missing, skipping real payment")
+      const demoUrl = `${siteUrl}/thank-you?reference=${encodeURIComponent(reference)}&topic=${encodeURIComponent(topic)}&form=${encodeURIComponent(form)}&demo=true`
+      return NextResponse.json({ checkout_url: demoUrl, demo: true })
+    }
+
+    // 1. Tengeneza session kwenye Snippe (hii inatumika tu kama kuna KEY)
     const snippeRes = await fetch("https://api.snippe.sh/api/v1/sessions", {
       method: "POST",
       headers: {
@@ -25,14 +28,14 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        amount: amount, // TZS kama integer, mfano 1000
+        amount: amount,
         currency: "TZS",
         description: `${form} - ${topic}`,
-        reference: reference, // order_number yako - muhimu kwa webhook
+        reference: reference,
         allowed_methods: ["mobile_money", "card", "qr"],
         customer: {
           name: "Mwanafunzi",
-          phone: phone, // 2557xxxxxxxx
+          phone: phone,
         },
         redirect_url: `${siteUrl}/thank-you?reference=${encodeURIComponent(reference)}&topic=${encodeURIComponent(topic)}&form=${encodeURIComponent(form)}`,
         webhook_url: `${siteUrl}/api/webhooks/snippe`,
@@ -41,7 +44,7 @@ export async function POST(req: NextRequest) {
           topic,
           form,
         },
-        expires_in: 3600, // session ina-expire baada ya saa 1
+        expires_in: 3600,
       }),
     })
 
@@ -52,7 +55,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: json.message || "Snippe failed" }, { status: 500 })
     }
 
-    // Snippe inarudisha data.checkout_url na data.payment_link_url
     const checkoutUrl = json.data?.checkout_url || json.data?.payment_link_url || json.checkout_url
 
     if (!checkoutUrl) {
