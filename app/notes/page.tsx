@@ -256,7 +256,14 @@ function NotesContent() {
                     className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:shadow-sm hover:border-gray-300 hover:-translate-y-[1px] active:translate-y-0' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => toggleTopic(topic)} className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" />
+                      <input 
+                        type="checkbox" 
+                        disabled={!isAvailable} 
+                        checked={selectedNow && isAvailable} 
+                        onChange={() => isAvailable && toggleTopic(topic)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" 
+                      />
                       <span className={`text-sm font-medium ${!isAvailable? 'text-gray-400' : ''}`}>{topic}</span>
                     </div>
                     <span className={`text-xs font-bold ${isAvailable? 'text-green-600' : 'text-gray-400'}`}>{isAvailable? tr.ipo : tr.haijapakiwa}</span>
