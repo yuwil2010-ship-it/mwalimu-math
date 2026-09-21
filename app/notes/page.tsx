@@ -2,7 +2,7 @@
 import { Suspense, useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Check, Smartphone, Calculator, ArrowLeft, Globe, MessageCircle } from "lucide-react"
+import { Check, Smartphone, Calculator, ArrowLeft, Globe, MessageCircle, LogIn } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { validatePaymentForm, normalizeTZPhone } from "@/lib/validation"
 
@@ -74,7 +74,7 @@ function NotesContent() {
     const prefix = getKeyPrefix()
     const key = `${prefix} - ${topic}`
     if (!availability[key]) return
-    setSelected(prev => prev.includes(key) ? prev.filter(t => t !== key) : [...prev, key])
+    setSelected(prev => prev.includes(key)? prev.filter(t => t!== key) : [...prev, key])
   }
   const isTopicSelected = (topic: string) => {
     const prefix = getKeyPrefix()
@@ -84,18 +84,15 @@ function NotesContent() {
   const total = useMemo(() => selected.length * 1000, [selected])
 
   const handleLipa = async () => {
-    if (!phone || !whatsapp || selected.length === 0) {
+    if (!phone ||!whatsapp || selected.length === 0) {
       alert("Jaza namba na chagua topic")
       return
     }
-
-    // VALIDATION - Zuia namba ya Tigo kwa M-Pesa n.k
     const validation = validatePaymentForm(phone, whatsapp, method)
     if (!validation.valid) {
       alert(validation.error)
       return
     }
-
     setSubmitting(true)
     try {
       const cleanPhone = normalizeTZPhone(phone)
@@ -183,7 +180,7 @@ function NotesContent() {
           </div>
           <div className="flex items-center gap-1 bg-blue-600 border border-blue-500 rounded-full px-3 py-1">
             <Globe size={14} className="text-white" />
-            <select value={lang} onChange={(e) => setLang(e.target.value === 'en' ? 'en' : 'sw')} className="bg-transparent text-white text-xs font-bold outline-none">
+            <select value={lang} onChange={(e) => setLang(e.target.value === 'en'? 'en' : 'sw')} className="bg-transparent text-white text-xs font-bold outline-none">
               <option value="sw" className="text-black">Kiswahili</option>
               <option value="en" className="text-black">English</option>
             </select>
@@ -193,11 +190,20 @@ function NotesContent() {
 
       <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8] mb-4"><ArrowLeft size={16} /> {tr.rudi}</Link>
+          {/* ROW MPYA - Rudi Nyumbani + Login */}
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8]">
+              <ArrowLeft size={16} /> {tr.rudi}
+            </Link>
+            <Link href="/admin" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm">
+              <LogIn size={14} /> Login
+            </Link>
+          </div>
+
           <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
           <div className="flex flex-wrap gap-2 mt-4">
             {Object.keys(syllabus).map(form => (
-              <button key={form} onClick={() => setActiveForm(form)} className={`px-4 py-2 rounded-full text-sm font-bold border ${activeForm === form ? 'bg-[#1d4ed8] text-white' : 'bg-white'}`}>{form}</button>
+              <button key={form} onClick={() => setActiveForm(form)} className={`px-4 py-2 rounded-full text-sm font-bold border ${activeForm === form? 'bg-[#1d4ed8] text-white' : 'bg-white'}`}>{form}</button>
             ))}
           </div>
 
@@ -205,14 +211,14 @@ function NotesContent() {
             {activeForm === "Mazoezi" && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {Object.keys(mazoeziByForm).map(f => (
-                  <button key={f} onClick={() => setMazoeziForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${mazoeziForm === f ? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${mazoeziForm === f? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
                 ))}
               </div>
             )}
             {activeForm === "Bonus" && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {bonusForms.map(f => (
-                  <button key={f} onClick={() => setBonusForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${bonusForm === f ? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
+                  <button key={f} onClick={() => setBonusForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${bonusForm === f? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
                 ))}
               </div>
             )}
@@ -224,12 +230,12 @@ function NotesContent() {
                 const isAvailable = availability[key] || false
                 const selectedNow = isTopicSelected(topic)
                 return (
-                  <div key={topic} className={`flex justify-between items-center p-3 rounded-xl border ${selectedNow ? 'bg-blue-50 border-[#1d4ed8]' : 'bg-white'} ${!isAvailable ? 'opacity-60' : ''}`}>
+                  <div key={topic} className={`flex justify-between items-center p-3 rounded-xl border ${selectedNow? 'bg-blue-50 border-[#1d4ed8]' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}>
                     <div className="flex items-center gap-3">
                       <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => toggleTopic(topic)} className="w-5 h-5 accent-[#1d4ed8]" />
-                      <span className={`text-sm font-medium ${!isAvailable ? 'text-gray-400' : ''}`}>{topic}</span>
+                      <span className={`text-sm font-medium ${!isAvailable? 'text-gray-400' : ''}`}>{topic}</span>
                     </div>
-                    <span className={`text-xs font-bold ${isAvailable ? 'text-green-600' : 'text-gray-400'}`}>{isAvailable ? tr.ipo : tr.haijapakiwa}</span>
+                    <span className={`text-xs font-bold ${isAvailable? 'text-green-600' : 'text-gray-400'}`}>{isAvailable? tr.ipo : tr.haijapakiwa}</span>
                   </div>
                 )
               })}
@@ -239,7 +245,7 @@ function NotesContent() {
 
         <div className="bg-white rounded-2xl border p-5 h-fit sticky top-20">
           <h3 className="font-bold text-sm">{tr.muhtasari}</h3>
-          {selected.length === 0 ? <p className="text-xs text-gray-500 mt-3">{tr.empty}</p> :
+          {selected.length === 0? <p className="text-xs text-gray-500 mt-3">{tr.empty}</p> :
             <ul className="mt-3 space-y-1 max-h-48 overflow-auto">
               {selected.map(s => <li key={s} className="text-xs flex gap-2"><Check size={12} className="text-green-500 mt-0.5" />{s}</li>)}
             </ul>
@@ -251,7 +257,7 @@ function NotesContent() {
             <p className="text-xs font-bold mb-2">{tr.chaguaMtandao}</p>
             <div className="grid grid-cols-2 gap-2">
               {[{ name: "M-Pesa", color: "bg-red-600" }, { name: "Mixx by Yas", color: "bg-purple-600" }, { name: "Airtel Money", color: "bg-red-500" }, { name: "HaloPesa", color: "bg-orange-500" }].map(m => (
-                <button key={m.name} onClick={() => setMethod(m.name)} className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${method === m.name ? 'border-[#1d4ed8] bg-blue-50' : ''}`}>
+                <button key={m.name} onClick={() => setMethod(m.name)} className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${method === m.name? 'border-[#1d4ed8] bg-blue-50' : ''}`}>
                   <span className={`w-2 h-2 rounded-full ${m.color}`}></span>{m.name}
                 </button>
               ))}
@@ -273,10 +279,10 @@ function NotesContent() {
           </div>
           <button
             onClick={handleLipa}
-            disabled={selected.length === 0 || !phone || !whatsapp || submitting}
+            disabled={selected.length === 0 ||!phone ||!whatsapp || submitting}
             className="w-full mt-5 bg-[#1d4ed8] disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm"
           >
-            {submitting ? "Inatuma..." : `Lipa TZS ${total.toLocaleString()} kwa ${method}`}
+            {submitting? "Inatuma..." : `Lipa TZS ${total.toLocaleString()} kwa ${method}`}
           </button>
           <p className="text-xs text-center text-gray-500 mt-3">{tr.whatsappNote}</p>
         </div>
