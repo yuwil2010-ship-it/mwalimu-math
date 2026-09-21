@@ -175,20 +175,8 @@ function NotesContent() {
           form: activeForm
         })
       })
-
-      // Snippe API wakati mwingine inarudisha HTML kama route haipo - tunai-detect
-      const contentType = res.headers.get("content-type") || ""
-      let data: { checkout_url?: string; error?: string }
-      if (contentType.includes("application/json")) {
-        data = await res.json()
-      } else {
-        const text = await res.text()
-        console.error("Non-JSON from /api/snippe/create:", text.slice(0, 800))
-        throw new Error(`API /api/snippe/create haipo (Status ${res.status}). Hakikisha ume-push app/api/snippe/create/route.ts kwenye GitHub/Vercel.`)
-      }
-
+      const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Imeshindwa kutengeneza link ya malipo")
-      if (!data.checkout_url) throw new Error("checkout_url missing kutoka Snippe")
 
       window.location.href = data.checkout_url
 
@@ -235,7 +223,7 @@ function NotesContent() {
           <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
           <div className="flex flex-wrap gap-2 mt-4">
             {Object.keys(syllabus).map(form => (
-              <button key={form} onClick={() => setActiveForm(form)} className={`px-4 py-2 rounded-full text-sm font-bold border ${activeForm === form? 'bg-[#1d4ed8] text-white' : 'bg-white'}`}>{form}</button>
+              <button key={form} onClick={() => setActiveForm(form)} className={`px-4 py-2 rounded-full text-sm font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300'}`}>{form}</button>
             ))}
           </div>
 
@@ -243,14 +231,14 @@ function NotesContent() {
             {activeForm === "Mazoezi" && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {Object.keys(mazoeziByForm).map(f => (
-                  <button key={f} onClick={() => setMazoeziForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${mazoeziForm === f? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
             {activeForm === "Bonus" && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {bonusForms.map(f => (
-                  <button key={f} onClick={() => setBonusForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${bonusForm === f? 'bg-[#1d4ed8] text-white' : 'bg-gray-50'}`}>{f}</button>
+                  <button key={f} onClick={() => setBonusForm(f)} className={`px-3 py-1.5 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] ${bonusForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
@@ -262,9 +250,13 @@ function NotesContent() {
                 const isAvailable = availability[key] || false
                 const selectedNow = isTopicSelected(topic)
                 return (
-                  <div key={topic} className={`flex justify-between items-center p-3 rounded-xl border ${selectedNow? 'bg-blue-50 border-[#1d4ed8]' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}>
+                  <div 
+                    key={topic} 
+                    onClick={() => isAvailable && toggleTopic(topic)}
+                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:shadow-sm hover:border-gray-300 hover:-translate-y-[1px] active:translate-y-0' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
+                  >
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => toggleTopic(topic)} className="w-5 h-5 accent-[#1d4ed8]" />
+                      <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => toggleTopic(topic)} className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" />
                       <span className={`text-sm font-medium ${!isAvailable? 'text-gray-400' : ''}`}>{topic}</span>
                     </div>
                     <span className={`text-xs font-bold ${isAvailable? 'text-green-600' : 'text-gray-400'}`}>{isAvailable? tr.ipo : tr.haijapakiwa}</span>
@@ -289,7 +281,7 @@ function NotesContent() {
             <p className="text-xs font-bold mb-2">{tr.chaguaMtandao}</p>
             <div className="grid grid-cols-2 gap-2">
               {[{ name: "M-Pesa", color: "bg-red-600" }, { name: "Mixx by Yas", color: "bg-purple-600" }, { name: "Airtel Money", color: "bg-red-500" }, { name: "HaloPesa", color: "bg-orange-500" }].map(m => (
-                <button key={m.name} onClick={() => setMethod(m.name)} className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${method === m.name? 'border-[#1d4ed8] bg-blue-50' : ''}`}>
+                <button key={m.name} onClick={() => setMethod(m.name)} className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-sm active:scale-[0.98] ${method === m.name? 'border-[#1d4ed8] bg-blue-50 shadow-sm' : 'hover:bg-gray-50 hover:border-gray-300'}`}>
                   <span className={`w-2 h-2 rounded-full ${m.color}`}></span>{m.name}
                 </button>
               ))}
@@ -312,9 +304,23 @@ function NotesContent() {
           <button
             onClick={handleLipa}
             disabled={selected.length === 0 ||!phone ||!whatsapp || submitting}
-            className="w-full mt-5 bg-[#1d4ed8] disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm"
+            className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm
+              cursor-pointer
+              transition-all duration-200 ease-out
+              hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-[1px]
+              active:translate-y-0 active:shadow-md active:scale-[0.98]
+              disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:translate-y-0 disabled:scale-100 disabled:cursor-not-allowed disabled:hover:bg-gray-300
+              focus:outline-none focus:ring-2 focus:ring-[#1d4ed8] focus:ring-offset-2 focus:ring-offset-white
+              flex items-center justify-center gap-2"
           >
-            {submitting? "Inatuma..." : `Lipa TZS ${total.toLocaleString()} kwa ${method}`}
+            {submitting? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                Inatuma...
+              </>
+            ) : (
+              `Lipa TZS ${total.toLocaleString()} kwa ${method}`
+            )}
           </button>
           <p className="text-xs text-center text-gray-500 mt-3">{tr.whatsappNote}</p>
         </div>
