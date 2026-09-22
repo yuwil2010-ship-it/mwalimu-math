@@ -68,15 +68,15 @@ export default function AdminLoginPage() {
 
   return (
     <div className="h-screen overflow-hidden bg-white flex flex-col items-center justify-center px-4">
-      {/* LOGO - kama home page */}
-      <div className="flex items-center gap-2 font-black text- text-[#1d4ed8] mb-5">
-        <div className="w-9 h-9 bg-[#1d4ed8] rounded-lg flex items-center justify-center shadow-sm">
+      {/* LOGO */}
+      <div className="flex items-center gap-2 font-black text- text-[#1d4ed8] mb-6">
+        <div className="w-9 h-9 bg-[#1d4ed8] rounded-lg flex items-center justify-center">
           <Calculator size={20} className="text-white" />
         </div>
         Mwalimu Math
       </div>
 
-      {/* BOX - NUSU YA HORIZONTAL YA 340px -> 170px, IMEWEKWA KATI */}
+      {/* BOX - SASA NI NUSU TU YA SCREEN, KATI */}
       <div className="w-full max-w- mx-auto border border-gray-200 rounded- p-5 bg-white shadow-sm">
         <form onSubmit={handleEmailAuth} className="space-y-4">
           <div>
@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
           <div>
             <div className="flex justify-between items-center">
               <label className="text- font-semibold text-gray-900">Password</label>
-              <button type="button" onClick={handleForgot} className="text- text-gray-500 hover:text-[#4F5AAE] hover:underline">
+              <button type="button" onClick={handleForgot} className="text- text-gray-500 hover:text-[#4F5AAE]">
                 Forgot password?
               </button>
             </div>
@@ -114,13 +114,9 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          {msg && <div className="text- p-2.5 rounded-lg bg-gray-50 border text-gray-700 break-words">{msg}</div>}
+          {msg && <div className="text- p-2.5 rounded-lg bg-gray-50 border break-words">{msg}</div>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#4F5AAE] hover:bg-[#434a9a] text-white py-2.5 rounded-lg font-semibold text- disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className="w-full bg-[#4F5AAE] hover:bg-[#434a9a] text-white py-2.5 rounded-lg font-semibold text- disabled:opacity-50">
             {loading? "..." : mode === "login"? "Log in" : "Create account"}
           </button>
         </form>
@@ -131,11 +127,7 @@ export default function AdminLoginPage() {
           <div className="flex-1 h-px bg-gray-200"></div>
         </div>
 
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          className="w-full border border-gray-200 bg-white hover:bg-gray-50 py-2.5 rounded-lg text- font-medium flex items-center justify-center gap-2"
-        >
+        <button onClick={handleGoogle} disabled={loading} className="w-full border border-gray-200 bg-white hover:bg-gray-50 py-2.5 rounded-lg text- font-medium flex items-center justify-center gap-2">
           <span className="w-5 h-5 rounded-full border flex items-center justify-center text- font-black text-blue-600">G</span>
           Continue with Google
         </button>
@@ -144,11 +136,11 @@ export default function AdminLoginPage() {
       <div className="mt-4 text-center">
         <p className="text- text-gray-500">
           {mode === "login"? "Don't have an account?" : "Already have an account?"}{" "}
-          <button onClick={() => setMode(mode === "login"? "signup" : "login")} className="text-[#4F5AAE] font-semibold hover:underline">
+          <button onClick={() => setMode(mode === "login"? "signup" : "login")} className="text-[#4F5AAE] font-semibold">
             {mode === "login"? "Create one" : "Log in"}
           </button>
         </p>
-        <Link href="/" className="inline-flex items-center gap-1.5 mt-3 text- text-[#4F5AAE] font-medium hover:underline">
+        <Link href="/" className="inline-flex items-center gap-1.5 mt-3 text- text-[#4F5AAE] font-medium">
           <ArrowLeft size={14} /> Back to website
         </Link>
       </div>
