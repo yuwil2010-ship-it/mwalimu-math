@@ -58,10 +58,13 @@ export default function AdminDashboard() {
     { form: "Form II", students: 12 },
     { form: "Form III", students: 18 },
     { form: "Form IV", students: 10 },
+    { form: "Form V", students: 14 },
+    { form: "Form VI", students: 16 },
   ]
 
   return (
     <div className="h-screen bg-[#f6f7fb] flex overflow-hidden">
+      {/* LEFT */}
       <aside className="w-60 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0">
         <div className="px-5 py-5 flex items-center gap-2 font-black text- bg-[#1d4ed8] text-white">
           <div className="w-8 h-8 bg-white border border-blue-200 rounded-lg flex items-center justify-center">
@@ -76,10 +79,10 @@ export default function AdminDashboard() {
             </button>
           ))}
         </nav>
-        <div className="border-t p-4 space-y-2">
+        {/* 1. Sasa Username + Logout pekee */}
+        <div className="border-t p-4">
           <p className="text- font-bold tracking-widest text-gray-400 uppercase">Username</p>
-          <p className="text-sm font-bold text-gray-800">Admin</p>
-          <button onClick={handleLogout} className="mt-2 w-full flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors cursor-pointer">
+          <button onClick={handleLogout} className="mt-3 w-full flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors cursor-pointer">
             <LogOut size={16}/> Sign Out
           </button>
         </div>
@@ -117,34 +120,42 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#eef0ff] flex items-center justify-center text-[#1d4ed8]"><School size={18}/></div>
-              <div><h2 className="font-bold text-">{tr.registered}</h2><p className="text-sm text-gray-500">4 {tr.classes}</p></div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {classList.map((c) => (
-                <div key={c.form} className="bg-[#f6f7fb] rounded-xl p-4">
-                  <p className="font-bold text-[#1d4ed8]">{c.form}</p>
-                  <p className="text-sm mt-2 text-gray-700"><span className="font-black text-[#1d4ed8]">{c.students}</span> {tr.studentsW}</p>
-                </div>
-              ))}
-              <div className="sm:col-span-2 bg-[#1d4ed8] rounded-xl p-5 text-white">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-bold capitalize">{monthName}</p>
-                    <p className="text-2xl font-black mt-1">{now.toLocaleTimeString()}</p>
-                    <p className="text-xs text-white/70 mt-1">{now.toLocaleDateString(lang==='sw'?'sw-TZ':'en-US', { weekday: 'long' })}</p>
+          {/* 2. Layout 75% : 25% */}
+          <div className="flex flex-col lg:flex-row gap-4 items-start">
+            {/* A. Kushoto 75% - Registered Classes 2 cols x 3 rows */}
+            <div className="w-full lg:w-[75%] bg-white rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-[#eef0ff] flex items-center justify-center text-[#1d4ed8]"><School size={18}/></div>
+                <div><h2 className="font-bold text-">{tr.registered}</h2><p className="text-sm text-gray-500">6 {tr.classes}</p></div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {classList.map((c) => (
+                  <div key={c.form} className="bg-[#f6f7fb] rounded-xl p-4">
+                    <p className="font-bold text-[#1d4ed8]">{c.form}</p>
+                    <p className="text-sm mt-2 text-gray-700"><span className="font-black text-[#1d4ed8]">{c.students}</span> {tr.studentsW}</p>
                   </div>
-                  <Calendar size={20} className="text-white/60"/>
+                ))}
+              </div>
+            </div>
+
+            {/* B. Kulia 25% - Calendar nje ya box, background kama ya cards */}
+            <div className="w-full lg:w-[25%] bg-white rounded-2xl p-5 shadow-sm">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-sm font-bold capitalize text-[#1d4ed8]">{monthName}</p>
+                  <p className="text-xl font-black mt-1 text-gray-900">{now.toLocaleTimeString()}</p>
+                  <p className="text-xs text-gray-500 mt-1">{now.toLocaleDateString(lang==='sw'?'sw-TZ':'en-US', { weekday: 'long' })}</p>
                 </div>
-                <div className="grid grid-cols-7 gap-1 mt-4 text-center">
-                  {["S","M","T","W","T","F","S"].map((d,i)=><div key={`head-${d}-${i}`} className="text- text-white/50 font-bold py-1">{d}</div>)}
-                  {Array.from({length:firstDay}).map((_,i)=><div key={`empty-${i}`}></div>)}
+                <Calendar size={18} className="text-[#1d4ed8]/60"/>
+              </div>
+              <div className="bg-[#f6f7fb] rounded-xl p-3">
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {["S","M","T","W","T","F","S"].map((d,i)=><div key={`h-${i}`} className="text- text-gray-400 font-bold py-1">{d}</div>)}
+                  {Array.from({length:firstDay}).map((_,i)=><div key={`e-${i}`}></div>)}
                   {Array.from({length:daysInMonth}).map((_,i)=>{
                     const day = i+1
                     const isToday = day===now.getDate()
-                    return <div key={`day-${day}`} className={`text- py-1.5 rounded-full ${isToday?"bg-white text-[#1d4ed8] font-black":"text-white/80"}`}>{day}</div>
+                    return <div key={`d-${day}`} className={`text- py-1.5 rounded-full ${isToday?"bg-[#1d4ed8] text-white font-black":"text-gray-700"}`}>{day}</div>
                   })}
                 </div>
               </div>
