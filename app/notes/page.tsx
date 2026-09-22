@@ -2,7 +2,7 @@
 import { Suspense, useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Check, Smartphone, Calculator, ArrowLeft, Globe, MessageCircle, LogIn } from "lucide-react"
+import { Check, Smartphone, Calculator, ArrowLeft, Globe, MessageCircle } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { validatePaymentForm, normalizeTZPhone } from "@/lib/validation"
 
@@ -200,12 +200,9 @@ function NotesContent() {
 
       <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-start items-center mb-4">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8]">
               <ArrowLeft size={16} /> {tr.rudi}
-            </Link>
-            <Link href="/admin" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm">
-              <LogIn size={14} /> Login
             </Link>
           </div>
 
