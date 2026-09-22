@@ -13,7 +13,6 @@ const menu = [
   { name: "Settings", icon: Settings, sub: ["Change Password", "Reset Password"] },
 ]
 
-// 1. SidebarContent IMEHAMISHWA NJE - ndio fix ya error Ln 138
 function SidebarContent({
   activeLink,
   openDropdown,
@@ -107,8 +106,8 @@ export default function AdminDashboard() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const tr = {
-    en: { adminPanel: "Admin Panel", admin: "Admin", teachers: "Teachers", students: "Students", parents: "Parents", registered: "Registered Classes", classes: "classes", studentsW: "Students" },
-    sw: { adminPanel: "Paneli ya Admin", admin: "Msimamizi", teachers: "Walimu", students: "Wanafunzi", parents: "Wazazi", registered: "Madarasa Yaliyosajiliwa", classes: "madarasa", studentsW: "Wanafunzi" }
+    en: { adminPanel: "Admin", admin: "Admin", teachers: "Teachers", students: "Students", parents: "Parents", registered: "Registered Classes", classes: "classes", studentsW: "Students" },
+    sw: { adminPanel: "Admin", admin: "Msimamizi", teachers: "Walimu", students: "Wanafunzi", parents: "Wazazi", registered: "Madarasa Yaliyosajiliwa", classes: "madarasa", studentsW: "Wanafunzi" }
   }[lang]
 
   const monthNames = lang === 'sw'
@@ -154,12 +153,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="h-screen bg-[#f6f7fb] flex overflow-hidden">
-      {/* Desktop */}
       <aside className="w-60 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0">
         <SidebarContent activeLink={activeLink} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setActiveLink={setActiveLink} setMobileOpen={setMobileOpen} handleLogout={handleLogout} />
       </aside>
 
-      {/* Mobile */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex">
           <div className="absolute inset-0 bg-black/50" onClick={()=>setMobileOpen(false)}></div>
