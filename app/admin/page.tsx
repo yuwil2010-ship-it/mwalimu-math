@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, Globe, ShieldCheck, HeartHandshake, School, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
+import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, Globe, ShieldCheck, HeartHandshake, School, ChevronLeft, ChevronRight, ChevronDown, Menu, X } from "lucide-react"
 
 const menu = [
   { name: "Dashboard", icon: LayoutDashboard, sub: [] as string[] },
@@ -13,6 +13,88 @@ const menu = [
   { name: "Settings", icon: Settings, sub: ["Change Password", "Reset Password"] },
 ]
 
+// 1. SidebarContent IMEHAMISHWA NJE - ndio fix ya error Ln 138
+function SidebarContent({
+  activeLink,
+  openDropdown,
+  setOpenDropdown,
+  setActiveLink,
+  setMobileOpen,
+  handleLogout,
+  onClose,
+}: {
+  activeLink: string
+  openDropdown: string | null
+  setOpenDropdown: (v: string | null) => void
+  setActiveLink: (v: string) => void
+  setMobileOpen: (v: boolean) => void
+  handleLogout: () => void
+  onClose?: () => void
+}) {
+  return (
+    <>
+      <div className="px-5 py-5 flex items-center justify-between font-black text- bg-[#1d4ed8] text-white">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-white border border-blue-200 rounded-lg flex items-center justify-center">
+            <Calculator size={18} className="text-[#1d4ed8]" />
+          </div>
+          Mwalimu Math
+        </div>
+        {onClose && (
+          <button onClick={onClose} className="md:hidden p-1 rounded hover:bg-white/20"><X size={18}/></button>
+        )}
+      </div>
+      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        {menu.map((item) => {
+          const isMainActive = activeLink === item.name || item.sub.includes(activeLink)
+          return (
+            <div key={item.name}>
+              <button
+                onClick={()=> {
+                  if(item.sub.length>0){
+                    setOpenDropdown(openDropdown===item.name? null : item.name)
+                    setActiveLink(item.name)
+                  }else{
+                    setActiveLink(item.name)
+                    setOpenDropdown(null)
+                    setMobileOpen(false)
+                  }
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}
+              >
+                <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
+                {item.sub.length>0 && <ChevronDown size={14} className={`transition-transform ${openDropdown===item.name? "rotate-180" : ""}`} />}
+              </button>
+              {item.sub.length>0 && openDropdown===item.name && (
+                <div className="mt-1 ml-3 pl-3 border-l border-gray-200 space-y-1">
+                  {item.sub.map((sub)=>{
+                    const isSubActive = activeLink === sub
+                    return (
+                      <button
+                        key={sub}
+                        onClick={()=> {setActiveLink(sub); setMobileOpen(false)}}
+                        className={`w-full text-left text- px-3 py-2 rounded-lg transition-colors ${isSubActive? "bg-[#eef2ff] text-[#1d4ed8] font-semibold" : "text-gray-500 hover:text-[#1d4ed8] hover:bg-[#f6f7fb]"}`}
+                      >
+                        {sub}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </nav>
+      <div className="border-t p-4">
+        <p className="text- font-bold tracking-widest text-gray-400 uppercase">Username</p>
+        <button onClick={handleLogout} className="mt-3 w-full flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors cursor-pointer">
+          <LogOut size={16}/> Sign Out
+        </button>
+      </div>
+    </>
+  )
+}
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [authed, setAuthed] = useState(false)
@@ -22,6 +104,7 @@ export default function AdminDashboard() {
   const [showPicker, setShowPicker] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeLink, setActiveLink] = useState("Dashboard")
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const tr = {
     en: { adminPanel: "Admin Panel", admin: "Admin", teachers: "Teachers", students: "Students", parents: "Parents", registered: "Registered Classes", classes: "classes", studentsW: "Students" },
@@ -29,7 +112,7 @@ export default function AdminDashboard() {
   }[lang]
 
   const monthNames = lang === 'sw'
- ? ["Januari","Februari","Machi","Aprili","Mei","Juni","Julai","Agosti","Septemba","Oktoba","Novemba","Desemba"]
+? ["Januari","Februari","Machi","Aprili","Mei","Juni","Julai","Agosti","Septemba","Oktoba","Novemba","Desemba"]
     : ["January","February","March","April","May","June","July","August","September","October","November","December"]
 
   useEffect(() => {
@@ -71,72 +154,36 @@ export default function AdminDashboard() {
 
   return (
     <div className="h-screen bg-[#f6f7fb] flex overflow-hidden">
-      {/* LEFT SIDEBAR */}
+      {/* Desktop */}
       <aside className="w-60 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0">
-        <div className="px-5 py-5 flex items-center gap-2 font-black text- bg-[#1d4ed8] text-white">
-          <div className="w-8 h-8 bg-white border border-blue-200 rounded-lg flex items-center justify-center">
-            <Calculator size={18} className="text-[#1d4ed8]" />
-          </div>
-          Mwalimu Math
-        </div>
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-          {menu.map((item) => {
-            const isMainActive = activeLink === item.name || item.sub.includes(activeLink)
-            return (
-              <div key={item.name}>
-                <button
-                  onClick={()=> {
-                    if(item.sub.length>0){
-                      setOpenDropdown(openDropdown===item.name? null : item.name)
-                      setActiveLink(item.name)
-                    }else{
-                      setActiveLink(item.name)
-                      setOpenDropdown(null)
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}
-                >
-                  <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
-                  {item.sub.length>0 && <ChevronDown size={14} className={`transition-transform ${openDropdown===item.name? "rotate-180" : ""}`} />}
-                </button>
-                {item.sub.length>0 && openDropdown===item.name && (
-                  <div className="mt-1 ml-3 pl-3 border-l border-gray-200 space-y-1">
-                    {item.sub.map((sub)=>{
-                      const isSubActive = activeLink === sub
-                      return (
-                        <button
-                          key={sub}
-                          onClick={()=> setActiveLink(sub)}
-                          className={`w-full text-left text- px-3 py-2 rounded-lg transition-colors ${isSubActive? "bg-[#eef2ff] text-[#1d4ed8] font-semibold" : "text-gray-500 hover:text-[#1d4ed8] hover:bg-[#f6f7fb]"}`}
-                        >
-                          {sub}
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </nav>
-        <div className="border-t p-4">
-          <p className="text- font-bold tracking-widest text-gray-400 uppercase">Username</p>
-          <button onClick={handleLogout} className="mt-3 w-full flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors cursor-pointer">
-            <LogOut size={16}/> Sign Out
-          </button>
-        </div>
+        <SidebarContent activeLink={activeLink} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setActiveLink={setActiveLink} setMobileOpen={setMobileOpen} handleLogout={handleLogout} />
       </aside>
 
+      {/* Mobile */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div className="absolute inset-0 bg-black/50" onClick={()=>setMobileOpen(false)}></div>
+          <aside className="relative w-72 bg-white h-full flex flex-col shrink-0 shadow-xl">
+            <SidebarContent activeLink={activeLink} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setActiveLink={setActiveLink} setMobileOpen={setMobileOpen} handleLogout={handleLogout} onClose={()=>setMobileOpen(false)} />
+          </aside>
+        </div>
+      )}
+
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-[#1d4ed8] text-white px-6 py-4 flex justify-between items-center shrink-0">
-          <h1 className="font-bold text-xl">{tr.adminPanel} - {activeLink}</h1>
+        <header className="bg-[#1d4ed8] text-white px-4 md:px-6 py-4 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 cursor-pointer">
+              <Menu size={20}/>
+            </button>
+            <h1 className="font-bold text- md:text-xl truncate">{tr.adminPanel} - {activeLink}</h1>
+          </div>
           <button onClick={()=>setLang(lang==='sw'?'en':'sw')} className="flex items-center gap-1.5 border border-white/30 bg-white/10 hover:bg-white/20 rounded-full px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer">
             <Globe size={14}/> {lang.toUpperCase()}
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <div className="bg-[#16a34a] rounded-2xl p-5 text-white shadow-sm">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><ShieldCheck size={18}/></div>
               <p className="mt-4 text-3xl font-black">1</p>
