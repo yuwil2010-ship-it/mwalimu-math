@@ -23,7 +23,7 @@ const kitabuData = [
 
 const t = {
   sw: {
-    huduma: "Huduma", badge: "Wanafunzi 100+ wameipata",
+    badge: "Wanafunzi 100+ wameipata",
     hero1: "Msaidie Mwanafunzi Wako", hero2: "Kufaulu Mathematics",
     heroDesc: "Nukuu kamili za Mathematics Form I-VI kulingana na syllabus ya Tanzania. PDF tayari kuchapisha na kufundishia nyumbani.",
     pakuaLong: "Pakua Sasa - TZS 1,000/topic", ofa: "Ofa ya Leo",
@@ -36,7 +36,7 @@ const t = {
     tayariTitle: "Uko Tayari Kuanza?", tayariDesc: "Chagua topic unayohitaji leo kwa TZS 1,000 tu", pakua: "Pakua Sasa",
   },
   en: {
-    huduma: "Services", badge: "100+ Students Got It", hero1: "Help Your Student", hero2: "Excel in Mathematics",
+    badge: "100+ Students Got It", hero1: "Help Your Student", hero2: "Excel in Mathematics",
     heroDesc: "Complete Mathematics Notes Form I-VI based on Tanzania syllabus. Ready to print PDF for home learning.",
     pakuaLong: "Download Now - TZS 1,000/topic", ofa: "Today's Offer", pdf1: "Printable PDF", pdf2: "Choose only the topic you need", pdf3: "Receive via WhatsApp instantly",
     chagua: "Choose Topic Now", nukuuTitle: "Available Notes", nukuuDesc: "Each class is divided by topic - Total 71 topics",
@@ -61,9 +61,6 @@ export default function HomePage() {
             Mwalimu Math
           </div>
           <div className="flex items-center gap-5">
-            <nav className="hidden md:flex gap-6 text-sm font-medium text-white">
-              <a href="#ndani" className="hover:text-yellow-200">{tr.huduma}</a>
-            </nav>
             <div className="relative flex items-center gap-1 bg-blue-600 border border-blue-500 rounded-full px-3 py-1">
               <Globe size={14} className="text-white"/>
               <select value={lang} onChange={(e)=> {const val = e.target.value; setLang(val === 'en'? 'en' : 'sw')}} className="bg-transparent text-white text-xs font-bold outline-none">
@@ -114,7 +111,6 @@ export default function HomePage() {
             {kitabuData.map((item) => (
               <div key={item.form} className="bg-white rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl transition group flex flex-col">
                 <div className={`h-36 bg-gradient-to-br ${item.bg} relative flex items-center justify-center overflow-hidden`}>
-                  {/* Background formula - SASA INAONEKANA VIZURI */}
                   <div className="absolute inset-0 opacity-[0.45]">
                     <div className="absolute top-6 left-4 text-blue-900 text-3xl font-black rotate-12">{item.symbols[0]}</div>
                     <div className="absolute top-10 right-6 text-blue-800 text-2xl font-bold -rotate-12">{item.symbols[1]}</div>
@@ -122,25 +118,18 @@ export default function HomePage() {
                     <div className="absolute bottom-6 right-4 text-blue-700/80 text-base font-bold -rotate-6">{item.symbols[3]}</div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-900 text-7xl font-black opacity-[0.12]">∑</div>
                   </div>
-
-                  {/* Icon kushoto juu */}
                   <div className="absolute top-3 left-3 z-20">
                     <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md border border-blue-100">
                       <item.icon size={18} className="text-[#1d4ed8]"/>
                     </div>
                   </div>
-
-                  {/* Badge kulia juu */}
                   <div className="absolute top-3 right-3 z-20">
                     <span className="text- bg-white/80 backdrop-blur text-blue-800 px-2.5 py-1 rounded-full font-bold border border-blue-200 shadow-sm">{item.topics} Topics</span>
                   </div>
-
-                  {/* Jina la kidato katikati - sasa blue-900 ili lionekane juu ya light blue */}
                   <div className="relative z-10 flex flex-col items-center justify-center text-center mt-2">
                     <h4 className="font-black text-blue-900 text-xl tracking-tight">{item.form}</h4>
                   </div>
                 </div>
-
                 <div className="p-3.5 bg-white">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-1.5">
