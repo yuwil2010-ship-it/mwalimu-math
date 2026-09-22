@@ -33,12 +33,13 @@ export default function AdminLoginPage() {
         if (error) throw error
         if (data.user && ALLOWED_ADMINS.length > 0 &&!ALLOWED_ADMINS.includes(data.user.email || "")) {
           await supabase.auth.signOut()
-          throw new Error("Email " + data.user.email + " hairuhusiwi Admin.")
+          throw new Error("Email " + (data.user.email || "") + " hairuhusiwi Admin.")
         }
         router.push("/admin")
       }
-    } catch (err: any) {
-      setMsg(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error? err.message : typeof err === "string"? err : "Imetokea kosa"
+      setMsg(message)
     } finally {
       setLoading(false)
     }
