@@ -67,9 +67,8 @@ export default function AdminLoginPage() {
   }
 
   return (
-    // HAKUNA SCROLL - h-screen overflow-hidden
     <div className="h-screen overflow-hidden bg-white flex flex-col items-center justify-center px-4">
-      {/* LOGO YA HOME PAGE - JUU YA BOX */}
+      {/* LOGO - kama home page */}
       <div className="flex items-center gap-2 font-black text- text-[#1d4ed8] mb-5">
         <div className="w-9 h-9 bg-[#1d4ed8] rounded-lg flex items-center justify-center shadow-sm">
           <Calculator size={20} className="text-white" />
@@ -77,8 +76,8 @@ export default function AdminLoginPage() {
         Mwalimu Math
       </div>
 
-      {/* BOX NDOGO - max-w- = nusu ya kati */}
-      <div className="w-full max-w- border border-gray-200 rounded- p-5 bg-white shadow-sm">
+      {/* BOX - NUSU YA HORIZONTAL YA 340px -> 170px, IMEWEKWA KATI */}
+      <div className="w-full max-w- mx-auto border border-gray-200 rounded- p-5 bg-white shadow-sm">
         <form onSubmit={handleEmailAuth} className="space-y-4">
           <div>
             <label className="text- font-semibold text-gray-900">Username</label>
@@ -89,7 +88,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="mwalimu"
+                placeholder="username"
                 className="w-full pl-10 pr-3 py-2.5 border border-[#4F5AAE] rounded-lg text- outline-none focus:ring-2 focus:ring-[#4F5AAE]/20"
               />
             </div>
@@ -115,7 +114,7 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          {msg && <div className="text- p-2.5 rounded-lg bg-gray-50 border text-gray-700">{msg}</div>}
+          {msg && <div className="text- p-2.5 rounded-lg bg-gray-50 border text-gray-700 break-words">{msg}</div>}
 
           <button
             type="submit"
