@@ -200,15 +200,17 @@ function NotesContent() {
 
       <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
-          <div className="flex justify-start items-center mb-4">
+          <div className="flex justify-between items-center mb-4">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8]">
               <ArrowLeft size={16} /> {tr.rudi}
+            </Link>
+            <Link href="/admin" className="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm">
+              Login
             </Link>
           </div>
 
           <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
 
-          {/* VIDATO - 2 ROWS x 4 COLS = 8 BUTTONS, NDOGO NA TITLE FIT ROW 1 */}
           <div className="grid grid-cols-4 gap-2 mt-4">
             {Object.keys(syllabus).map(form => (
               <button
@@ -305,14 +307,7 @@ function NotesContent() {
           <button
             onClick={handleLipa}
             disabled={selected.length === 0 ||!phone ||!whatsapp || submitting}
-            className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm
-              cursor-pointer
-              transition-all duration-200 ease-out
-              hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-
-              active:translate-y-0 active:shadow-md active:scale-[0.98]
-              disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:translate-y-0 disabled:scale-100 disabled:cursor-not-allowed disabled:hover:bg-gray-300
-              focus:outline-none focus:ring-2 focus:ring-[#1d4ed8] focus:ring-offset-2 focus:ring-offset-white
-              flex items-center justify-center gap-2"
+            className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm cursor-pointer transition-all duration-200 ease-out hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {submitting? (
               <>
