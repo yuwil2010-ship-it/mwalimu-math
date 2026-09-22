@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase"
 import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, Globe, ShieldCheck, HeartHandshake, School, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
 
 const menu = [
-  { name: "Dashboard", icon: LayoutDashboard, active: true, sub: [] as string[] },
+  { name: "Dashboard", icon: LayoutDashboard, sub: [] as string[] },
   { name: "Users", icon: Users, sub: ["Manage Admin", "Manage Teachers", "Manage Students", "Manage Parents"] },
   { name: "Academics", icon: GraduationCap, sub: ["Manage Classes", "Manage Materials", "Manage Timetable", "Manage Attendance", "Manage Assessment"] },
   { name: "Reports", icon: BarChart3, sub: ["Manage reports", "Chartroom"] },
@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [viewDate, setViewDate] = useState(new Date())
   const [showPicker, setShowPicker] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [activeLink, setActiveLink] = useState("Dashboard")
 
   const tr = {
     en: { adminPanel: "Admin Panel", admin: "Admin", teachers: "Teachers", students: "Students", parents: "Parents", registered: "Registered Classes", classes: "classes", studentsW: "Students" },
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
   }[lang]
 
   const monthNames = lang === 'sw'
-  ? ["Januari","Februari","Machi","Aprili","Mei","Juni","Julai","Agosti","Septemba","Oktoba","Novemba","Desemba"]
+ ? ["Januari","Februari","Machi","Aprili","Mei","Juni","Julai","Agosti","Septemba","Oktoba","Novemba","Desemba"]
     : ["January","February","March","April","May","June","July","August","September","October","November","December"]
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="h-screen bg-[#f6f7fb] flex overflow-hidden">
-      {/* LEFT SIDEBAR NA DROPDOWN */}
+      {/* LEFT SIDEBAR */}
       <aside className="w-60 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0">
         <div className="px-5 py-5 flex items-center gap-2 font-black text- bg-[#1d4ed8] text-white">
           <div className="w-8 h-8 bg-white border border-blue-200 rounded-lg flex items-center justify-center">
@@ -79,27 +80,44 @@ export default function AdminDashboard() {
           Mwalimu Math
         </div>
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-          {menu.map((item) => (
-            <div key={item.name}>
-              <button
-                onClick={()=> item.sub.length>0? setOpenDropdown(openDropdown===item.name? null : item.name) : null}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${item.active? "bg-[#1d4ed8] text-white" : "text-gray-600 hover:bg-gray-50"}`}
-              >
-                <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
-                {item.sub.length>0 && <ChevronDown size={14} className={`transition-transform ${openDropdown===item.name? "rotate-180" : ""}`} />}
-              </button>
-              {/* Dropdown Links */}
-              {item.sub.length>0 && openDropdown===item.name && (
-                <div className="mt-1 ml-3 pl-3 border-l border-gray-200 space-y-1">
-                  {item.sub.map((sub)=>(
-                    <button key={sub} className="w-full text-left text- text-gray-500 hover:text-[#1d4ed8] hover:bg-[#f6f7fb] px-3 py-2 rounded-lg transition-colors">
-                      {sub}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          {menu.map((item) => {
+            const isMainActive = activeLink === item.name || item.sub.includes(activeLink)
+            return (
+              <div key={item.name}>
+                <button
+                  onClick={()=> {
+                    if(item.sub.length>0){
+                      setOpenDropdown(openDropdown===item.name? null : item.name)
+                      setActiveLink(item.name)
+                    }else{
+                      setActiveLink(item.name)
+                      setOpenDropdown(null)
+                    }
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}
+                >
+                  <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
+                  {item.sub.length>0 && <ChevronDown size={14} className={`transition-transform ${openDropdown===item.name? "rotate-180" : ""}`} />}
+                </button>
+                {item.sub.length>0 && openDropdown===item.name && (
+                  <div className="mt-1 ml-3 pl-3 border-l border-gray-200 space-y-1">
+                    {item.sub.map((sub)=>{
+                      const isSubActive = activeLink === sub
+                      return (
+                        <button
+                          key={sub}
+                          onClick={()=> setActiveLink(sub)}
+                          className={`w-full text-left text- px-3 py-2 rounded-lg transition-colors ${isSubActive? "bg-[#eef2ff] text-[#1d4ed8] font-semibold" : "text-gray-500 hover:text-[#1d4ed8] hover:bg-[#f6f7fb]"}`}
+                        >
+                          {sub}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </nav>
         <div className="border-t p-4">
           <p className="text- font-bold tracking-widest text-gray-400 uppercase">Username</p>
@@ -111,7 +129,7 @@ export default function AdminDashboard() {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-[#1d4ed8] text-white px-6 py-4 flex justify-between items-center shrink-0">
-          <h1 className="font-bold text-xl">{tr.adminPanel}</h1>
+          <h1 className="font-bold text-xl">{tr.adminPanel} - {activeLink}</h1>
           <button onClick={()=>setLang(lang==='sw'?'en':'sw')} className="flex items-center gap-1.5 border border-white/30 bg-white/10 hover:bg-white/20 rounded-full px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer">
             <Globe size={14}/> {lang.toUpperCase()}
           </button>
