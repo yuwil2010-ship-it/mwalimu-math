@@ -97,13 +97,11 @@ function NotesContent() {
     try {
       const cleanPhone = normalizeTZPhone(phone)
       const cleanWa = normalizeTZPhone(whatsapp)
-
       const { data: customer, error: custErr } = await supabase.from('customers').upsert(
         { phone_malipo: cleanPhone, whatsapp_number: cleanWa },
         { onConflict: 'phone_malipo,whatsapp_number' }
       ).select().single()
       if (custErr) throw custErr
-
       const { data: order, error: orderErr } = await supabase.from('orders').insert({
         customer_id: customer?.id,
         phone_malipo: cleanPhone,
@@ -115,14 +113,11 @@ function NotesContent() {
         lang: lang
       }).select().single()
       if (orderErr) throw orderErr
-
-      // Tunachukua file_path kutoka topics_catalog kwa ajili ya Supabase Storage
       const { data: catalogRows } = await supabase.from('topics_catalog').select('id, full_key, file_path').in('full_key', selected)
       type CatalogRow = { id: string; full_key: string; file_path: string | null }
       const catalogMap = new Map<string, CatalogRow>(
-        (catalogRows as CatalogRow[] | null)?.map(r => [r.full_key, r]) ?? []
+        (catalogRows as CatalogRow[] | null)?.map(r => [r.full_key, r])?? []
       )
-
       const items = selected.map(fullKey => {
         let category = 'NOTES'
         let form_name = fullKey.split(' - ')[0]
@@ -151,10 +146,8 @@ function NotesContent() {
           price: 1000
         }
       })
-
       const { error: itemsErr } = await supabase.from('order_items').insert(items)
       if (itemsErr) throw itemsErr
-
       await supabase.from('payments').insert({
         order_id: order.id,
         method: method,
@@ -162,8 +155,6 @@ function NotesContent() {
         amount: total,
         status: 'pending'
       })
-
-      // Elekeza kwa Snippe - Snippe akimaliza atarudi /thank-you?reference=...
       const res = await fetch("/api/snippe/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,9 +168,7 @@ function NotesContent() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Imeshindwa kutengeneza link ya malipo")
-
       window.location.href = data.checkout_url
-
     } catch (err: unknown) {
       console.error("FULL ERROR:", err)
       const e = err as { message?: string; details?: string; hint?: string }
@@ -221,25 +210,32 @@ function NotesContent() {
           </div>
 
           <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
-          {/* Vidato - Grid iliyonyooka kwa simu na tablet */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-2 mt-4">
+
+          {/* VIDATO - 2 ROWS x 4 COLS = 8 BUTTONS, NDOGO NA TITLE FIT ROW 1 */}
+          <div className="grid grid-cols-4 gap-2 mt-4">
             {Object.keys(syllabus).map(form => (
-              <button key={form} onClick={() => setActiveForm(form)} className={`w-full px-4 py-2.5 rounded-full text-sm font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}>{form}</button>
+              <button
+                key={form}
+                onClick={() => setActiveForm(form)}
+                className={`w-full px-2 py-2 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center whitespace-nowrap overflow-hidden text-ellipsis leading-tight ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}
+              >
+                {form}
+              </button>
             ))}
           </div>
 
           <div className="mt-6 bg-white rounded-2xl border p-4">
             {activeForm === "Mazoezi" && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-4">
                 {Object.keys(mazoeziByForm).map(f => (
-                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-3 py-2 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text- font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
             {activeForm === "Bonus" && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-3 gap-1.5 mb-4">
                 {bonusForms.map(f => (
-                  <button key={f} onClick={() => setBonusForm(f)} className={`w-full px-3 py-2 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center ${bonusForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f} onClick={() => setBonusForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text- font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap leading-tight ${bonusForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
@@ -251,19 +247,19 @@ function NotesContent() {
                 const isAvailable = availability[key] || false
                 const selectedNow = isTopicSelected(topic)
                 return (
-                  <div 
-                    key={topic} 
+                  <div
+                    key={topic}
                     onClick={() => isAvailable && toggleTopic(topic)}
-                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:shadow-sm hover:border-gray-300 hover:-translate-y-[1px] active:translate-y-0' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
+                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable? 'cursor-pointer hover:shadow-sm hover:border-gray-300 hover:-translate-y- active:translate-y-0' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
-                        disabled={!isAvailable} 
-                        checked={selectedNow && isAvailable} 
+                      <input
+                        type="checkbox"
+                        disabled={!isAvailable}
+                        checked={selectedNow && isAvailable}
                         onChange={() => isAvailable && toggleTopic(topic)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" 
+                        className="w-5 h-5 accent-[#1d4ed8] cursor-pointer"
                       />
                       <span className={`text-sm font-medium ${!isAvailable? 'text-gray-400' : ''}`}>{topic}</span>
                     </div>
@@ -315,7 +311,7 @@ function NotesContent() {
             className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm
               cursor-pointer
               transition-all duration-200 ease-out
-              hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-[1px]
+              hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-
               active:translate-y-0 active:shadow-md active:scale-[0.98]
               disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:translate-y-0 disabled:scale-100 disabled:cursor-not-allowed disabled:hover:bg-gray-300
               focus:outline-none focus:ring-2 focus:ring-[#1d4ed8] focus:ring-offset-2 focus:ring-offset-white
