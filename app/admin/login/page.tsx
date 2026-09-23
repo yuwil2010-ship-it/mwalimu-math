@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -11,6 +11,16 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState("")
+
+  useEffect(() => {
+    localStorage.removeItem("mwalimu_admin_authed")
+    localStorage.removeItem("mwalimu_admin_role")
+    localStorage.removeItem("mwalimu_admin_id")
+    localStorage.removeItem("mwalimu_admin_name")
+    localStorage.removeItem("mwalimu_admin_email")
+    localStorage.removeItem("mwalimu_admin_last_activity")
+    window.history.replaceState(null, "", "/admin/login")
+  }, [])
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,36 +35,25 @@ export default function AdminLoginPage() {
         localStorage.setItem("mwalimu_admin_role", "super admin")
         localStorage.setItem("mwalimu_admin_name", emailLower)
         localStorage.setItem("mwalimu_admin_id", "0")
-        router.push("/admin")
+        localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
+        router.replace("/admin")
         return
       }
 
-      // 1. Tafuta kwa email tu
-      const { data, error } = await supabase
-        .from("admins")
-        .select("*")
-        .eq("email", emailLower)
-        .single()
-
-      if (error || !data) {
-        console.log("Supabase error:", error)
-        throw new Error(`Email ${emailLower} haipo kwenye admins table`)
-      }
-
-      // 2. Linganisha password kwa code, si kwa DB
-      if ((data.password || "").toLowerCase().trim()!== passLower) {
-        throw new Error(`Password si sahihi. Inayotarajiwa ni: ${data.password}`)
-      }
+      const { data, error } = await supabase.from("admins").select("*").eq("email", emailLower).single()
+      if (error || !data) throw new Error("Email haipo kwenye admins table")
+      if ((data.password || "").toLowerCase().trim()!== passLower) throw new Error("Password si sahihi")
 
       localStorage.setItem("mwalimu_admin_authed", "true")
       localStorage.setItem("mwalimu_admin_id", String(data.id))
       localStorage.setItem("mwalimu_admin_role", data.description)
       localStorage.setItem("mwalimu_admin_name", data.name)
       localStorage.setItem("mwalimu_admin_email", data.email)
-
-      router.push("/admin")
+      localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
+      router.replace("/admin")
     } catch (err: unknown) {
-      setMsg(err instanceof Error? err.message : "Kosa limetokea")
+      const message = err instanceof Error ? err.message : "Kosa limetokea"
+      setMsg(message)
     } finally {
       setLoading(false)
     }
