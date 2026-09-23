@@ -20,7 +20,12 @@ const mazoeziByForm: Record<string, string[]> = {
   "Form I": syllabus["Form I"], "Form II": syllabus["Form II"], "Form III": syllabus["Form III"],
   "Form IV": syllabus["Form IV"], "Form V": syllabus["Form V"], "Form VI": syllabus["Form VI"],
 }
-const bonusForms = ["Form II NECTA", "Form IV NECTA", "Form VI NECTA"]
+// Imebadilishwa ili i-fit kwenye simu ndogo
+const bonusForms = [
+  { value: "Form II NECTA", label: "Necta FII" },
+  { value: "Form IV NECTA", label: "Necta FIV" },
+  { value: "Form VI NECTA", label: "Necta FVI" },
+]
 const currentYear = new Date().getFullYear()
 const nectaYears = Array.from({ length: 5 }, (_, i) => `Necta ${currentYear - i}`)
 
@@ -82,7 +87,6 @@ function NotesContent() {
     return selected.includes(key)
   }
   const total = useMemo(() => selected.length * 1000, [selected])
-
   const handleLipa = async () => {
     if (!phone ||!whatsapp || selected.length === 0) {
       alert("Jaza namba na chagua topic")
@@ -227,14 +231,14 @@ function NotesContent() {
             {activeForm === "Mazoezi" && (
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-4">
                 {Object.keys(mazoeziByForm).map(f => (
-                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text- font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
             {activeForm === "Bonus" && (
               <div className="grid grid-cols-3 gap-1.5 mb-4">
                 {bonusForms.map(f => (
-                  <button key={f} onClick={() => setBonusForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text- font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap leading-tight ${bonusForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f.value} onClick={() => setBonusForm(f.value)} className={`w-full px-2 py-1.5 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap leading-tight ${bonusForm === f.value? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f.label}</button>
                 ))}
               </div>
             )}
@@ -249,17 +253,10 @@ function NotesContent() {
                   <div
                     key={topic}
                     onClick={() => isAvailable && toggleTopic(topic)}
-                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable? 'cursor-pointer hover:shadow-sm hover:border-gray-300 hover:-translate-y- active:translate-y-0' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
+                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable? 'cursor-pointer hover:shadow-sm hover:border-gray-300' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        disabled={!isAvailable}
-                        checked={selectedNow && isAvailable}
-                        onChange={() => isAvailable && toggleTopic(topic)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 accent-[#1d4ed8] cursor-pointer"
-                      />
+                      <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => isAvailable && toggleTopic(topic)} onClick={(e) => e.stopPropagation()} className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" />
                       <span className={`text-sm font-medium ${!isAvailable? 'text-gray-400' : ''}`}>{topic}</span>
                     </div>
                     <span className={`text-xs font-bold ${isAvailable? 'text-green-600' : 'text-gray-400'}`}>{isAvailable? tr.ipo : tr.haijapakiwa}</span>
@@ -304,19 +301,8 @@ function NotesContent() {
               </div>
             </div>
           </div>
-          <button
-            onClick={handleLipa}
-            disabled={selected.length === 0 ||!phone ||!whatsapp || submitting}
-            className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm cursor-pointer transition-all duration-200 ease-out hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {submitting? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                Inatuma...
-              </>
-            ) : (
-              `Lipa TZS ${total.toLocaleString()} kwa ${method}`
-            )}
+          <button onClick={handleLipa} disabled={selected.length === 0 ||!phone ||!whatsapp || submitting} className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm cursor-pointer transition-all duration-200 ease-out hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            {submitting? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>Inatuma...</>) : (`Lipa TZS ${total.toLocaleString()} kwa ${method}`)}
           </button>
           <p className="text-xs text-center text-gray-500 mt-3">{tr.whatsappNote}</p>
         </div>
