@@ -8,6 +8,7 @@ type AdminItem = {
   name: string
   email: string
   description: string
+  password?: string
   created_at?: string
 }
 
@@ -27,7 +28,6 @@ export default function ManageAdminPage() {
   const [formEmail, setFormEmail] = useState("")
   const [formDesc, setFormDesc] = useState("admin")
 
-  // FIX: Hakuna setState synchronous ndani ya effect
   useEffect(() => {
     const loadAdmins = async () => {
       const { data: admins, error } = await supabase.from('admins').select('*').order('id', { ascending: true })
@@ -61,10 +61,13 @@ export default function ManageAdminPage() {
       alert("Jaza jina na email")
       return
     }
+    const firstName = formName.trim().split(' ')[0].toLowerCase()
+
     const { data: inserted, error } = await supabase.from('admins').insert({
       name: formName.trim(),
       email: formEmail.trim(),
-      description: formDesc
+      description: formDesc,
+      password: firstName
     }).select().single()
 
     if (error) {
@@ -92,7 +95,7 @@ export default function ManageAdminPage() {
     const { data: updated, error } = await supabase.from('admins').update({
       name: formName.trim(),
       email: formEmail.trim(),
-      description: formDesc
+      description: formDesc,
     }).eq('id', selected.id).select().single()
 
     if (error) {
@@ -219,12 +222,13 @@ export default function ManageAdminPage() {
           <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-gray-100">
             <div className="flex justify-between items-center mb-4"><h3 className="font-bold text-">Add New Admin</h3><button onClick={()=> setShowAdd(false)} className="p-1 hover:bg-gray-100 rounded-full"><X size={18}/></button></div>
             <div className="space-y-3">
-              <input value={formName} onChange={e=> setFormName(e.target.value)} placeholder="Admin Name" className="w-full border border-gray-200/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-300" />
+              <input value={formName} onChange={e=> setFormName(e.target.value)} placeholder="Admin Name - password itakuwa jina la mwanzo" className="w-full border border-gray-200/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-300" />
               <input value={formEmail} onChange={e=> setFormEmail(e.target.value)} placeholder="Email" className="w-full border border-gray-200/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-300" />
               <select value={formDesc} onChange={e=> setFormDesc(e.target.value)} className="w-full border border-gray-200/70 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
                 <option value="admin">admin</option>
                 <option value="super admin">super admin</option>
               </select>
+              {formName && <p className="text- text-gray-500">Default password itakuwa: <span className="font-bold text-[#1d4ed8]">{formName.split(' ')[0].toLowerCase()}</span></p>}
             </div>
             <div className="flex justify-end gap-2 mt-5">
               <button onClick={()=> setShowAdd(false)} className="px-4 py-2 rounded-xl border border-gray-200/70 text-sm">Cancel</button>
@@ -262,6 +266,7 @@ export default function ManageAdminPage() {
               <div className="flex justify-between"><span className="text-gray-500">Name:</span><span className="font-semibold">{selected.name}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Email:</span><span>{selected.email}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Role:</span><span className="capitalize font-semibold">{selected.description}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Default Password:</span><span className="font-semibold">{selected.name.split(' ')[0].toLowerCase()}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">ID:</span><span>#{selected.id}</span></div>
             </div>
             <div className="flex justify-end mt-5">
