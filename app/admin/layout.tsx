@@ -82,7 +82,6 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
                   if(item.sub.length>0){
                     if(open) setOpenDropdown("CLOSED")
                     else setOpenDropdown(item.name)
-                    // USIFANYE router.push hapa
                   }else{
                     router.push(item.href)
                     setMobileOpen(false)
@@ -123,23 +122,34 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [authed, setAuthed] = useState(false)
+  const isLoginPage = pathname === "/admin/login"
+
+  // FIX: authed inakuwa true moja kwa moja kama ni login page
+  const [authed, setAuthed] = useState(isLoginPage)
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
+    if (isLoginPage) return
     const check = async () => {
       const local = localStorage.getItem("mwalimu_admin_authed") === "true"
       const { data: { session } } = await supabase.auth.getSession()
-      if (!local &&!session) { router.push("/admin/login"); return }
+      if (!local &&!session) {
+        router.push("/admin/login")
+        return
+      }
       setAuthed(true)
     }
     check()
-  }, [router])
+  }, [router, isLoginPage])
 
   const handleLogout = async () => {
     localStorage.removeItem("mwalimu_admin_authed")
+    localStorage.removeItem("mwalimu_admin_role")
+    localStorage.removeItem("mwalimu_admin_id")
+    localStorage.removeItem("mwalimu_admin_name")
+    localStorage.removeItem("mwalimu_admin_email")
     await supabase.auth.signOut()
     router.push("/admin/login")
   }
@@ -155,6 +165,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return { title: "Dashboard", breadcrumb: ["Dashboard"] }
   }
   const { title, breadcrumb } = getPageInfo()
+
+  if (isLoginPage) {
+    return <>{children}</>
+  }
 
   if (!authed) return <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">Inapakia...</div>
 
