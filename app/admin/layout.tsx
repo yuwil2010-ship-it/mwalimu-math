@@ -82,7 +82,7 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
                   if(item.sub.length>0){
                     if(open) setOpenDropdown("CLOSED")
                     else setOpenDropdown(item.name)
-                    if(!pathname.startsWith(item.href)) router.push(item.sub[0].href)
+                    // USIFANYE router.push hapa
                   }else{
                     router.push(item.href)
                     setMobileOpen(false)

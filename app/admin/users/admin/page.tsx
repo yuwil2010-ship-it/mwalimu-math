@@ -10,12 +10,12 @@ type AdminItem = {
 }
 
 const initialData: AdminItem[] = [
-  { id: 1, name: "Admin Mkuu", email: "admin@mwalimumath.co.tz", description: "—" },
-  { id: 2, name: "Juma Said", email: "juma@mwalimumath.co.tz", description: "—" },
-  { id: 3, name: "Asha Mohamed", email: "asha@mwalimumath.co.tz", description: "—" },
-  { id: 4, name: "Yusuph Ali", email: "yusuph@mwalimumath.co.tz", description: "—" },
-  { id: 5, name: "Neema John", email: "neema@mwalimumath.co.tz", description: "—" },
-  { id: 6, name: "Baraka Musa", email: "baraka@mwalimumath.co.tz", description: "—" },
+  { id: 1, name: "Admin Mkuu", email: "admin@mwalimumath.co.tz", description: "super admin" },
+  { id: 2, name: "Juma Said", email: "juma@mwalimumath.co.tz", description: "admin" },
+  { id: 3, name: "Asha Mohamed", email: "asha@mwalimumath.co.tz", description: "admin" },
+  { id: 4, name: "Yusuph Ali", email: "yusuph@mwalimumath.co.tz", description: "admin" },
+  { id: 5, name: "Neema John", email: "neema@mwalimumath.co.tz", description: "admin" },
+  { id: 6, name: "Baraka Musa", email: "baraka@mwalimumath.co.tz", description: "admin" },
 ]
 
 export default function ManageAdminPage() {
@@ -40,7 +40,7 @@ export default function ManageAdminPage() {
       id: data.length + 1,
       name: newName,
       email: newEmail || `${newName.toLowerCase().replace(/\s/g,'')}@mwalimumath.co.tz`,
-      description: "—"
+      description: "admin"
     }
     setData([newItem,...data])
     setNewName("")
@@ -57,36 +57,32 @@ export default function ManageAdminPage() {
 
   return (
     <div className="space-y-4">
-      {/* Top search kama kwenye screenshot */}
-      <div className="bg-white rounded-xl border p-4 flex flex-col md:flex-row gap-3 md:items-center justify-between">
-        <h2 className="font-bold text-">Admins</h2>
-        <div className="flex-1 max-w-xl mx-0 md:mx-6 relative">
+      {/* ROW 1: Admins List + Search (search upande wa kulia, usivuke nusu ya page) */}
+      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
+        <h1 className="text- font-extrabold">Admins List</h1>
+        <div className="w-full md:w-1/2 md:max-w- relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             value={search}
             onChange={e=> {setSearch(e.target.value); setCurrentPage(1)}}
             placeholder="Search by name..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 bg-gray-50 text-sm outline-none focus:bg-white focus:border-[#1d4ed8]"
+            className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300"
           />
         </div>
-        <div className="hidden md:block w-20"></div>
       </div>
 
-      {/* Header ya List + per page + Add */}
+      {/* ROW 2: Per page + Add - border hafifu */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
-        <div className="flex items-center gap-3">
-          <h1 className="text- font-extrabold">Admins List</h1>
-          <select
-            value={perPage}
-            onChange={e=> {setPerPage(Number(e.target.value)); setCurrentPage(1)}}
-            className="border rounded-lg px-3 py-2 text-sm text-gray-600 bg-white outline-none"
-          >
-            <option value={10}>10 per page</option>
-            <option value={25}>25 per page</option>
-            <option value={50}>50 per page</option>
-            <option value={100}>100 per page</option>
-          </select>
-        </div>
+        <select
+          value={perPage}
+          onChange={e=> {setPerPage(Number(e.target.value)); setCurrentPage(1)}}
+          className="border border-gray-200/70 rounded-lg px-3 py-2 text-sm text-gray-600 bg-white outline-none focus:border-gray-300"
+        >
+          <option value={10}>10 per page</option>
+          <option value={25}>25 per page</option>
+          <option value={50}>50 per page</option>
+          <option value={100}>100 per page</option>
+        </select>
         <button
           onClick={()=> setShowAdd(true)}
           className="inline-flex items-center gap-2 bg-[#3f3f8a] hover:bg-[#343470] text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors"
@@ -95,12 +91,12 @@ export default function ManageAdminPage() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+      {/* Table - border hafifu kama search field */}
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50/80 border-b text-left">
+              <tr className="bg-gray-50/60 border-b border-gray-100 text-left">
                 <th className="px-6 py-3 text- font-semibold text-gray-500">SN</th>
                 <th className="px-6 py-3 text- font-semibold text-gray-500">Name</th>
                 <th className="px-6 py-3 text- font-semibold text-gray-500">Email</th>
@@ -110,11 +106,11 @@ export default function ManageAdminPage() {
             </thead>
             <tbody>
               {paginated.map((item, idx)=>(
-                <tr key={item.id} className="border-b last:border-0 hover:bg-gray-50/50">
+                <tr key={item.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/40">
                   <td className="px-6 py-4 text-sm text-gray-500">{(currentPage-1)*perPage + idx + 1}</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-800">{item.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{item.email}</td>
-                  <td className="px-6 py-4 text-sm">{item.description}</td>
+                  <td className="px-6 py-4 text-sm capitalize">{item.description}</td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end gap-3 text-gray-500">
                       <button className="hover:text-[#1d4ed8] p-1"><Eye size={18}/></button>
@@ -131,8 +127,8 @@ export default function ManageAdminPage() {
           </table>
         </div>
 
-        {/* Pagination - mwisho wa page */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-6 py-4 border-t bg-white">
+        {/* Pagination */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-6 py-4 border-t border-gray-100 bg-white">
           <p className="text- text-gray-500">
             Showing {(currentPage-1)*perPage+1} to {Math.min(currentPage*perPage, filtered.length)} of {filtered.length} entries
           </p>
@@ -140,7 +136,7 @@ export default function ManageAdminPage() {
             <button
               disabled={currentPage===1}
               onClick={()=> setCurrentPage(p=> Math.max(1, p-1))}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border hover:bg-gray-50 disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200/70 hover:bg-gray-50 disabled:opacity-30"
             >
               <ChevronLeft size={16}/>
             </button>
@@ -150,7 +146,7 @@ export default function ManageAdminPage() {
                 <button
                   key={page}
                   onClick={()=> setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text- font-bold border ${currentPage===page? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-white hover:bg-gray-50"}`}
+                  className={`w-8 h-8 rounded-lg text- font-bold border ${currentPage===page? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-white border-gray-200/70 hover:bg-gray-50"}`}
                 >
                   {page}
                 </button>
@@ -159,7 +155,7 @@ export default function ManageAdminPage() {
             <button
               disabled={currentPage===totalPages}
               onClick={()=> setCurrentPage(p=> Math.min(totalPages, p+1))}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border hover:bg-gray-50 disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200/70 hover:bg-gray-50 disabled:opacity-30"
             >
               <ChevronRight size={16}/>
             </button>
@@ -170,14 +166,14 @@ export default function ManageAdminPage() {
       {/* Modal ya Add */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-gray-100">
             <h3 className="font-bold text- mb-4">Add New Admin</h3>
             <div className="space-y-3">
-              <input value={newName} onChange={e=> setNewName(e.target.value)} placeholder="Admin Name" className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#1d4ed8]" />
-              <input value={newEmail} onChange={e=> setNewEmail(e.target.value)} placeholder="Email (optional)" className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#1d4ed8]" />
+              <input value={newName} onChange={e=> setNewName(e.target.value)} placeholder="Admin Name" className="w-full border border-gray-200/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-300" />
+              <input value={newEmail} onChange={e=> setNewEmail(e.target.value)} placeholder="Email (optional)" className="w-full border border-gray-200/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-300" />
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={()=> setShowAdd(false)} className="px-4 py-2 rounded-xl border text-sm">Cancel</button>
+              <button onClick={()=> setShowAdd(false)} className="px-4 py-2 rounded-xl border border-gray-200/70 text-sm">Cancel</button>
               <button onClick={handleAdd} className="px-5 py-2 rounded-xl bg-[#1d4ed8] text-white text-sm font-bold">Save</button>
             </div>
           </div>
