@@ -18,7 +18,6 @@ export default function ManageAdminPage() {
   const [data, setData] = useState<AdminItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  // SOMA ROLE NA ID MOJA KWA MOJA, USIWEKE NDANI YA useEffect
   const [currentRole] = useState(() => {
     if (typeof window!== "undefined") {
       return localStorage.getItem("mwalimu_admin_role") || "admin"
@@ -124,8 +123,8 @@ export default function ManageAdminPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
-        <h1 className="text- font-extrabold">Admins List</h1>
-        <div className="w-full md:w-1/2 md:max-w- relative">
+        <h1 className="text-lg font-extrabold">Admins List</h1>
+        <div className="w-full md:w-1/2 md:max-w-md relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1) }} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300" />
         </div>
@@ -142,14 +141,15 @@ export default function ManageAdminPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* DESKTOP TABLE - 5 columns */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead><tr className="bg-gray-50/60 border-b border-gray-100 text-left">
-              <th className="px-6 py-3 text- text-gray-500">SN</th>
-              <th className="px-6 py-3 text- text-gray-500">Name</th>
-              <th className="px-6 py-3 text- text-gray-500">Email</th>
-              <th className="px-6 py-3 text- text-gray-500">Description</th>
-              <th className="px-6 py-3 text- text-gray-500 text-right">Actions</th>
+              <th className="px-6 py-3 text-xs text-gray-500">SN</th>
+              <th className="px-6 py-3 text-xs text-gray-500">Name</th>
+              <th className="px-6 py-3 text-xs text-gray-500">Email</th>
+              <th className="px-6 py-3 text-xs text-gray-500">Description</th>
+              <th className="px-6 py-3 text-xs text-gray-500 text-right">Actions</th>
             </tr></thead>
             <tbody>
               {loading? <tr><td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-400">Inapakia...</td></tr> :
@@ -158,7 +158,7 @@ export default function ManageAdminPage() {
                     <td className="px-6 py-4 text-sm">{(currentPage - 1) * perPage + idx + 1}</td>
                     <td className="px-6 py-4 text-sm font-medium">{item.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{item.email}</td>
-                    <td className="px-6 py-4 text-sm"><span className={`px-2.5 py-1 rounded-full text- font-bold ${item.description === 'super admin'? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>{item.description}</span></td>
+                    <td className="px-6 py-4 text-sm"><span className={`px-2.5 py-1 rounded-full text-xs font-bold ${item.description === 'super admin'? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>{item.description}</span></td>
                     <td className="px-6 py-4"><div className="flex justify-end gap-2">
                       <button onClick={() => { setSelected(item); setShowView(true) }} className="p-1 hover:text-[#1d4ed8]"><Eye size={18} /></button>
                       <button onClick={() => openEdit(item)} className="p-1 hover:text-[#1d4ed8]"><Pencil size={18} /></button>
@@ -169,12 +169,44 @@ export default function ManageAdminPage() {
             </tbody>
           </table>
         </div>
-        <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100">
-          <p className="text- text-gray-500">Showing {filtered.length === 0? 0 : (currentPage - 1) * perPage + 1} to {Math.min(currentPage * perPage, filtered.length)} of {filtered.length}</p>
+
+        {/* MOBILE - Column 2 tu: Name na Description, hakuna scroll */}
+        <div className="md:hidden">
+          {loading? <div className="px-6 py-10 text-center text-sm text-gray-400">Inapakia...</div> :
+            paginated.length === 0? <div className="px-6 py-10 text-center text-sm text-gray-400">Hakuna data</div> :
+            <div className="divide-y divide-gray-100">
+              {/* Header ya mobile - columns 2 */}
+              <div className="grid grid-cols-2 bg-gray-50/60 px-4 py-3 text-xs font-bold text-gray-500">
+                <span>Name</span>
+                <span>Description</span>
+              </div>
+              {paginated.map((item) => (
+                <div key={item.id} className="grid grid-cols-2 px-4 py-3.5 items-center hover:bg-gray-50/40">
+                  <div className="pr-2">
+                    <p className="text-sm font-medium truncate">{item.name}</p>
+                    <p className="text- text-gray-400 truncate">{item.email}</p>
+                    {/* Actions kwenye mobile chini ya jina ili isilete column ya 3 */}
+                    <div className="flex gap-3 mt-1.5">
+                      <button onClick={() => { setSelected(item); setShowView(true) }} className="text-gray-400 hover:text-[#1d4ed8]"><Eye size={16} /></button>
+                      <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-[#1d4ed8]"><Pencil size={16} /></button>
+                      <button disabled={!canDelete(item)} onClick={() => handleDelete(item.id)} className={`${!canDelete(item)? 'opacity-20' : 'text-gray-400 hover:text-red-600'}`}><Trash2 size={16} /></button>
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`px-2.5 py-1 rounded-full text- font-bold ${item.description === 'super admin'? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>{item.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        </div>
+
+        <div className="flex justify-between items-center px-4 md:px-6 py-4 border-t border-gray-100">
+          <p className="text-xs text-gray-500">Showing {filtered.length === 0? 0 : (currentPage - 1) * perPage + 1} to {Math.min(currentPage * perPage, filtered.length)} of {filtered.length}</p>
           <div className="flex gap-1">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className="w-8 h-8 border rounded-lg"><ChevronLeft size={16} /></button>
-            {Array.from({ length: totalPages }).map((_, i) => <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-8 h-8 rounded-lg border text- font-bold ${currentPage === i + 1? 'bg-[#1d4ed8] text-white' : 'bg-white'}`}>{i + 1}</button>)}
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className="w-8 h-8 border rounded-lg"><ChevronRight size={16} /></button>
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className="w-8 h-8 border rounded-lg flex items-center justify-center"><ChevronLeft size={16} /></button>
+            {Array.from({ length: Math.min(totalPages, 3) }).map((_, i) => <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-8 h-8 rounded-lg border text-xs font-bold ${currentPage === i + 1? 'bg-[#1d4ed8] text-white' : 'bg-white'}`}>{i + 1}</button>)}
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className="w-8 h-8 border rounded-lg flex items-center justify-center"><ChevronRight size={16} /></button>
           </div>
         </div>
       </div>
@@ -187,7 +219,7 @@ export default function ManageAdminPage() {
               <input value={formName} onChange={e => setFormName(e.target.value)} placeholder="Admin Name" className="w-full border rounded-xl px-4 py-2.5 text-sm" />
               <input value={formEmail} onChange={e => setFormEmail(e.target.value)} placeholder="Email" className="w-full border rounded-xl px-4 py-2.5 text-sm" />
               <select value={formDesc} onChange={e => setFormDesc(e.target.value)} className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white"><option value="admin">admin</option><option value="super admin">super admin</option></select>
-              {formName && <p className="text- text-gray-500">Password default: <b className="text-[#1d4ed8]">{formName.split(' ')[0].toLowerCase()}</b></p>}
+              {formName && <p className="text-xs text-gray-500">Password default: <b className="text-[#1d4ed8]">{formName.split(' ')[0].toLowerCase()}</b></p>}
             </div>
             <div className="flex justify-end gap-2 mt-5"><button onClick={() => setShowAdd(false)} className="px-4 py-2 border rounded-xl text-sm">Cancel</button><button onClick={handleAdd} className="px-5 py-2 bg-[#1d4ed8] text-white rounded-xl text-sm font-bold">Save</button></div>
           </div>
