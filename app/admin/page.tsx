@@ -1,278 +1,52 @@
 "use client"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
-import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, Globe, ShieldCheck, HeartHandshake, School, ChevronLeft, ChevronRight, ChevronDown, Menu, X } from "lucide-react"
+import { useContext, useState, useEffect } from "react"
+import { Users, GraduationCap, ShieldCheck, HeartHandshake, School, ChevronLeft, ChevronRight } from "lucide-react"
+import { LangContext } from "./layout"
 
-const menu = [
-  { name: "Dashboard", icon: LayoutDashboard, sub: [] as string[] },
-  { name: "Users", icon: Users, sub: ["Manage Admin", "Manage Teachers", "Manage Students", "Manage Parents"] },
-  { name: "Academics", icon: GraduationCap, sub: ["Manage Classes", "Manage Materials", "Manage Timetable", "Manage Attendance", "Manage Assessment"] },
-  { name: "Reports", icon: BarChart3, sub: ["Manage reports", "Chartroom"] },
-  { name: "Events", icon: Calendar, sub: ["Manage Announcement", "School Calendar"] },
-  { name: "Settings", icon: Settings, sub: ["Change Password", "Reset Password"] },
-]
-
-function SidebarContent({
-  activeLink,
-  openDropdown,
-  setOpenDropdown,
-  setActiveLink,
-  setMobileOpen,
-  handleLogout,
-  onClose,
-}: {
-  activeLink: string
-  openDropdown: string | null
-  setOpenDropdown: (v: string | null) => void
-  setActiveLink: (v: string) => void
-  setMobileOpen: (v: boolean) => void
-  handleLogout: () => void
-  onClose?: () => void
-}) {
-  return (
-    <>
-      <div className="px-5 py-5 flex items-center justify-between font-black text- bg-[#1d4ed8] text-white">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white border border-blue-200 rounded-lg flex items-center justify-center">
-            <Calculator size={18} className="text-[#1d4ed8]" />
-          </div>
-          Mwalimu Math
-        </div>
-        {onClose && (
-          <button onClick={onClose} className="md:hidden p-1 rounded hover:bg-white/20"><X size={18}/></button>
-        )}
-      </div>
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {menu.map((item) => {
-          const isMainActive = activeLink === item.name || item.sub.includes(activeLink)
-          return (
-            <div key={item.name}>
-              <button
-                onClick={()=> {
-                  if(item.sub.length>0){
-                    setOpenDropdown(openDropdown===item.name? null : item.name)
-                    setActiveLink(item.name)
-                  }else{
-                    setActiveLink(item.name)
-                    setOpenDropdown(null)
-                    setMobileOpen(false)
-                  }
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}
-              >
-                <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
-                {item.sub.length>0 && <ChevronDown size={14} className={`transition-transform ${openDropdown===item.name? "rotate-180" : ""}`} />}
-              </button>
-              {item.sub.length>0 && openDropdown===item.name && (
-                <div className="mt-1 ml-3 pl-3 border-l border-gray-200 space-y-1">
-                  {item.sub.map((sub)=>{
-                    const isSubActive = activeLink === sub
-                    return (
-                      <button
-                        key={sub}
-                        onClick={()=> {setActiveLink(sub); setMobileOpen(false)}}
-                        className={`w-full text-left text- px-3 py-2 rounded-lg transition-colors ${isSubActive? "bg-[#eef2ff] text-[#1d4ed8] font-semibold" : "text-gray-500 hover:text-[#1d4ed8] hover:bg-[#f6f7fb]"}`}
-                      >
-                        {sub}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </nav>
-      <div className="border-t p-4">
-        <p className="text- font-bold tracking-widest text-gray-400 uppercase">Username</p>
-        <button onClick={handleLogout} className="mt-3 w-full flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors cursor-pointer">
-          <LogOut size={16}/> Sign Out
-        </button>
-      </div>
-    </>
-  )
-}
-
-export default function AdminDashboard() {
-  const router = useRouter()
-  const [authed, setAuthed] = useState(false)
-  const [lang, setLang] = useState<'sw' | 'en'>('sw')
+export default function DashboardPage(){
+  const lang = useContext(LangContext)
   const [now, setNow] = useState(new Date())
   const [viewDate, setViewDate] = useState(new Date())
-  const [showPicker, setShowPicker] = useState(false)
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
-  const [activeLink, setActiveLink] = useState("Dashboard")
-  const [mobileOpen, setMobileOpen] = useState(false)
 
   const tr = {
-    en: { adminPanel: "Admin", admin: "Admin", teachers: "Teachers", students: "Students", parents: "Parents", registered: "Registered Classes", classes: "classes", studentsW: "Students" },
-    sw: { adminPanel: "Admin", admin: "Msimamizi", teachers: "Walimu", students: "Wanafunzi", parents: "Wazazi", registered: "Madarasa Yaliyosajiliwa", classes: "madarasa", studentsW: "Wanafunzi" }
+    en: { admin: "Admin", teachers: "Teachers", students: "Students", parents: "Parents", registered: "Registered Classes", classes: "classes", studentsW: "Students" },
+    sw: { admin: "Msimamizi", teachers: "Walimu", students: "Wanafunzi", parents: "Wazazi", registered: "Madarasa Yaliyosajiliwa", classes: "madarasa", studentsW: "Wanafunzi" }
   }[lang]
 
-  const monthNames = lang === 'sw'
-? ["Januari","Februari","Machi","Aprili","Mei","Juni","Julai","Agosti","Septemba","Oktoba","Novemba","Desemba"]
-    : ["January","February","March","April","May","June","July","August","September","October","November","December"]
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    const check = async () => {
-      const local = localStorage.getItem("mwalimu_admin_authed") === "true"
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!local &&!session) { router.push("/admin/login"); return }
-      setAuthed(true)
-    }
-    check()
-  }, [router])
-
-  const handleLogout = async () => {
-    localStorage.removeItem("mwalimu_admin_authed")
-    await supabase.auth.signOut()
-    router.push("/admin/login")
-  }
-
-  if (!authed) return <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">Inapakia...</div>
+  useEffect(()=>{ const id=setInterval(()=>setNow(new Date()),1000); return()=>clearInterval(id)},[])
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const firstDay = new Date(year, month, 1).getDay()
-
-  const classList = [
-    { form: "Form I", students: 15 },
-    { form: "Form II", students: 12 },
-    { form: "Form III", students: 18 },
-    { form: "Form IV", students: 10 },
-    { form: "Form V", students: 14 },
-    { form: "Form VI", students: 16 },
-  ]
+  const classList = [{form:"Form I",students:15},{form:"Form II",students:12},{form:"Form III",students:18},{form:"Form IV",students:10},{form:"Form V",students:14},{form:"Form VI",students:16}]
 
   return (
-    <div className="h-screen bg-[#f6f7fb] flex overflow-hidden">
-      <aside className="w-60 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0">
-        <SidebarContent activeLink={activeLink} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setActiveLink={setActiveLink} setMobileOpen={setMobileOpen} handleLogout={handleLogout} />
-      </aside>
-
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
-          <div className="absolute inset-0 bg-black/50" onClick={()=>setMobileOpen(false)}></div>
-          <aside className="relative w-72 bg-white h-full flex flex-col shrink-0 shadow-xl">
-            <SidebarContent activeLink={activeLink} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setActiveLink={setActiveLink} setMobileOpen={setMobileOpen} handleLogout={handleLogout} onClose={()=>setMobileOpen(false)} />
-          </aside>
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-[#16a34a] rounded-2xl p-5 text-white"><div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><ShieldCheck size={18}/></div><p className="mt-4 text-3xl font-black">1</p><p className="text-xs uppercase">{tr.admin}</p></div>
+        <div className="bg-[#2563eb] rounded-2xl p-5 text-white"><div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><GraduationCap size={18}/></div><p className="mt-4 text-3xl font-black">12</p><p className="text-xs uppercase">{tr.teachers}</p></div>
+        <div className="bg-[#ca8a04] rounded-2xl p-5 text-white"><div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><Users size={18}/></div><p className="mt-4 text-3xl font-black">60</p><p className="text-xs uppercase">{tr.students}</p></div>
+        <div className="bg-[#1e3a8a] rounded-2xl p-5 text-white"><div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><HeartHandshake size={18}/></div><p className="mt-4 text-3xl font-black">120</p><p className="text-xs uppercase">{tr.parents}</p></div>
+      </div>
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="w-full lg:w-[70%] bg-white rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 rounded-xl bg-[#eef0ff] flex items-center justify-center text-[#1d4ed8]"><School size={18}/></div><div><h2 className="font-bold text-">{tr.registered}</h2><p className="text-sm text-gray-500">6 {tr.classes}</p></div></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{classList.map(c=><div key={c.form} className="bg-[#f6f7fb] rounded-xl p-4"><p className="font-bold text-[#1d4ed8]">{c.form}</p><p className="text-sm mt-2"><span className="font-black text-[#1d4ed8]">{c.students}</span> {tr.studentsW}</p></div>)}</div>
         </div>
-      )}
-
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-[#1d4ed8] text-white px-4 md:px-6 py-4 flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-3">
-            <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 cursor-pointer">
-              <Menu size={20}/>
-            </button>
-            <h1 className="font-bold text- md:text-xl truncate">{tr.adminPanel} - {activeLink}</h1>
+        <div className="w-full lg:w-[30%] bg-white rounded-2xl p-5 shadow-sm">
+          <div className="flex justify-between mb-4">
+            <div>
+              <p className="text-sm font-bold text-[#1d4ed8] capitalize">{viewDate.toLocaleString(lang==='sw'?'sw-TZ':'en-US',{month:'long',year:'numeric'})}</p>
+              <p className="text- text-gray-500 mt-1">{now.toLocaleDateString(lang==='sw'?'sw-TZ':'en-US',{weekday:'long'})} • {now.toLocaleTimeString()}</p>
+            </div>
+            <div className="flex gap-1"><button onClick={()=>setViewDate(new Date(year, month-1))} className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center"><ChevronLeft size={14}/></button><button onClick={()=>setViewDate(new Date(year, month+1))} className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center"><ChevronRight size={14}/></button></div>
           </div>
-          <button onClick={()=>setLang(lang==='sw'?'en':'sw')} className="flex items-center gap-1.5 border border-white/30 bg-white/10 hover:bg-white/20 rounded-full px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer">
-            <Globe size={14}/> {lang.toUpperCase()}
-          </button>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-[#16a34a] rounded-2xl p-5 text-white shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><ShieldCheck size={18}/></div>
-              <p className="mt-4 text-3xl font-black">1</p>
-              <p className="text-xs font-bold tracking-wide mt-1 text-white/80 uppercase">{tr.admin}</p>
-            </div>
-            <div className="bg-[#2563eb] rounded-2xl p-5 text-white shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><GraduationCap size={18}/></div>
-              <p className="mt-4 text-3xl font-black">12</p>
-              <p className="text-xs font-bold tracking-wide mt-1 text-white/80 uppercase">{tr.teachers}</p>
-            </div>
-            <div className="bg-[#ca8a04] rounded-2xl p-5 text-white shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><Users size={18}/></div>
-              <p className="mt-4 text-3xl font-black">60</p>
-              <p className="text-xs font-bold tracking-wide mt-1 text-white/80 uppercase">{tr.students}</p>
-            </div>
-            <div className="bg-[#1e3a8a] rounded-2xl p-5 text-white shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><HeartHandshake size={18}/></div>
-              <p className="mt-4 text-3xl font-black">120</p>
-              <p className="text-xs font-bold tracking-wide mt-1 text-white/80 uppercase">{tr.parents}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-            <div className="w-full lg:w-[70%] bg-white rounded-2xl p-6 shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-[#eef0ff] flex items-center justify-center text-[#1d4ed8]"><School size={18}/></div>
-                <div><h2 className="font-bold text-">{tr.registered}</h2><p className="text-sm text-gray-500">6 {tr.classes}</p></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {classList.map((c) => (
-                  <div key={c.form} className="bg-[#f6f7fb] rounded-xl p-4">
-                    <p className="font-bold text-[#1d4ed8]">{c.form}</p>
-                    <p className="text-sm mt-2 text-gray-700"><span className="font-black text-[#1d4ed8]">{c.students}</span> {tr.studentsW}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="w-full lg:w-[30%] bg-white rounded-2xl p-5 shadow-sm flex flex-col">
-              <div className="flex justify-between items-start mb-4">
-                <div className="relative">
-                  <button onClick={()=>setShowPicker(!showPicker)} className="text-sm font-bold capitalize text-[#1d4ed8] flex items-center gap-1 hover:bg-[#f6f7fb] px-2 py-1 rounded-lg transition-colors cursor-pointer">
-                    {viewDate.toLocaleString(lang==='sw'?'sw-TZ':'en-US',{month:'long',year:'numeric'})} <ChevronDown size={14}/>
-                  </button>
-                  {showPicker && (
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl p-3 z-50">
-                      <div className="flex justify-between items-center mb-3">
-                        <button onClick={()=>setViewDate(new Date(year-1, month))} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16}/></button>
-                        <span className="text-sm font-black">{year}</span>
-                        <button onClick={()=>setViewDate(new Date(year+1, month))} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16}/></button>
-                      </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        {monthNames.map((m,i)=>(
-                          <button key={m} onClick={()=>{setViewDate(new Date(year, i)); setShowPicker(false)}} className={`text- py-2 rounded-lg font-medium ${i===month?"bg-[#1d4ed8] text-white":"hover:bg-gray-100 text-gray-700"}`}>
-                            {m.slice(0,3)}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        <button onClick={()=>{setViewDate(new Date()); setShowPicker(false)}} className="flex-1 text-xs bg-[#1d4ed8] text-white py-1.5 rounded-lg font-bold">Today</button>
-                        <button onClick={()=>setShowPicker(false)} className="flex-1 text-xs bg-gray-100 py-1.5 rounded-lg">Close</button>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text- text-gray-500 mt-1 px-2">{now.toLocaleDateString(lang==='sw'?'sw-TZ':'en-US', { weekday: 'long' })} • {now.toLocaleTimeString()}</p>
-                </div>
-                <div className="flex gap-1">
-                  <button onClick={()=>setViewDate(new Date(year, month-1))} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer"><ChevronLeft size={14}/></button>
-                  <button onClick={()=>setViewDate(new Date(year, month+1))} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer"><ChevronRight size={14}/></button>
-                </div>
-              </div>
-              <div className="bg-[#f6f7fb] rounded-xl p-3 flex-1">
-                <div className="grid grid-cols-7 gap-1 text-center">
-                  {["S","M","T","W","T","F","S"].map((d,i)=><div key={`h-${i}`} className="text- text-gray-400 font-bold py-1">{d}</div>)}
-                  {Array.from({length:firstDay}).map((_,i)=><div key={`e-${i}`}></div>)}
-                  {Array.from({length:daysInMonth}).map((_,i)=>{
-                    const day = i+1
-                    const isToday = day===now.getDate() && month===now.getMonth() && year===now.getFullYear()
-                    return (
-                      <div key={`d-${day}`} className="flex justify-center py-0.5">
-                        <div className={`w-7 h-7 flex items-center justify-center text- rounded-full ${isToday?"bg-gray-300 text-gray-900 font-black":"text-gray-700 hover:bg-white"}`}>
-                          {day}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
+          <div className="bg-[#f6f7fb] rounded-xl p-3">
+            <div className="grid grid-cols-7 text-center gap-1">{["S","M","T","W","T","F","S"].map((d,i)=><div key={i} className="text- text-gray-400 font-bold py-1">{d}</div>)} {Array.from({length:firstDay}).map((_,i)=><div key={`e-${i}`}></div>)} {Array.from({length:daysInMonth}).map((_,i)=>{const day=i+1; const isToday=day===now.getDate()&&month===now.getMonth()&&year===now.getFullYear(); return <div key={day} className="flex justify-center py-0.5"><div className={`w-7 h-7 flex items-center justify-center text- rounded-full ${isToday?"bg-gray-300 font-black":"text-gray-700"}`}>{day}</div></div>})}</div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
