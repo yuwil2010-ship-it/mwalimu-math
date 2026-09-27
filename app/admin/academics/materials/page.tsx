@@ -1,6 +1,5 @@
 "use client"
 import { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
 import { Search, Plus, Eye, Pencil, Trash2, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
 
 type MaterialRow = { id: string; title: string; type: string; subject: string; uploadedBy: string; date: string }
@@ -11,27 +10,33 @@ const dummyMaterials: MaterialRow[] = [
   { id: "3", title: "Physics Book Form III", type: "Books", subject: "Physics", uploadedBy: "Dr. Asha", date: "2026-05-10" },
   { id: "4", title: "Form IV Timetable Term 2", type: "Timetable", subject: "General", uploadedBy: "Mr. Peter", date: "2026-05-12" },
   { id: "5", title: "Biology Teaching Aids", type: "Teaching aids", subject: "Biology", uploadedBy: "Ms. Grace", date: "2026-05-15" },
+  { id: "6", title: "Form I Mathematics Notes PDF", type: "Pdfs", subject: "Mathematics", uploadedBy: "Mr. Josephat", date: "2026-05-18" },
 ]
 
 const materialTypes = [
-  { label: "Scheme of works", href: "/admin/academics/materials/schemes" },
-  { label: "Lesson plan", href: "/admin/academics/materials/plans" },
-  { label: "Books", href: "/admin/academics/materials/books" },
-  { label: "Timetable", href: "/admin/academics/materials/timetable" },
-  { label: "Teaching aids", href: "/admin/academics/materials/aids" },
+  "Scheme of works",
+  "Lesson plan",
+  "Books",
+  "Timetable",
+  "Teaching aids",
+  "Pdfs",
 ]
 
 export default function MaterialsPage(){
-  const router = useRouter()
   const [search, setSearch] = useState("")
   const [perPage, setPerPage] = useState(25)
   const [page, setPage] = useState(1)
   const [showTypeDropdown, setShowTypeDropdown] = useState(false)
+  const [selectedType, setSelectedType] = useState<string | null>(null)
 
-  const filtered = useMemo(()=> dummyMaterials.filter(m=>
-    m.title.toLowerCase().includes(search.toLowerCase()) ||
-    m.type.toLowerCase().includes(search.toLowerCase())
-  ), [search])
+  const filtered = useMemo(()=> {
+    // 1. Kama hakuna type iliyochaguliwa, rudi array tupu - table itaonyesha header tu
+    if (!selectedType) return []
+    return dummyMaterials.filter(m=>
+      m.type.toLowerCase() === selectedType.toLowerCase() &&
+      (m.title.toLowerCase().includes(search.toLowerCase()) || m.type.toLowerCase().includes(search.toLowerCase()))
+    )
+  }, [search, selectedType])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
   const paged = filtered.slice((page-1)*perPage, page*perPage)
@@ -53,7 +58,7 @@ export default function MaterialsPage(){
         </div>
       </div>
 
-      {/* 2. TITLE + PER PAGE + ADD - mstari mmoja */}
+      {/* 2. TITLE + PER PAGE + ADD */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
         <h1 className="text-lg font-extrabold">Materials List</h1>
         <div className="flex items-center gap-3 ml-auto">
@@ -70,29 +75,35 @@ export default function MaterialsPage(){
         </div>
       </div>
 
-      {/* 3. DROPDOWN YA KUCHAGUA AINA YA MATERIAL - kabla ya table */}
+      {/* 3. DROPDOWN YA KUCHAGUA AINA YA MATERIAL */}
       <div className="bg-white p-4 rounded-xl border border-gray-100">
         <div className="relative inline-block">
-          <button onClick={()=> setShowTypeDropdown(!showTypeDropdown)} className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2.5 text-sm bg-white font-medium hover:bg-gray-50">
-            Select type of material <ChevronDown size={16} className={`${showTypeDropdown?'rotate-180':''} transition`} />
+          <button onClick={()=> setShowTypeDropdown(!showTypeDropdown)} className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2.5 text-sm bg-white font-medium hover:bg-gray-50 min-w- justify-between">
+            {selectedType? selectedType : "Select type of material"} <ChevronDown size={16} className={`${showTypeDropdown?'rotate-180':''} transition`} />
           </button>
           {showTypeDropdown && (
             <div className="absolute mt-2 w-60 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
-              {materialTypes.map(item=>(
+              {materialTypes.map(label=>(
                 <button
-                  key={item.href}
-                  onClick={()=> { setShowTypeDropdown(false); router.push(item.href) }}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#eef2ff] hover:text-[#1d4ed8]"
+                  key={label}
+                  onClick={()=> { setSelectedType(label); setShowTypeDropdown(false); setPage(1) }}
+                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#eef2ff] hover:text-[#1d4ed8] ${selectedType===label?'bg-[#eef2ff] text-[#1d4ed8] font-bold':''}`}
                 >
-                  {item.label}
+                  {label}
                 </button>
               ))}
+              {selectedType && (
+                <button onClick={()=> { setSelectedType(null); setShowTypeDropdown(false); setPage(1) }} className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 border-t">
+                  Clear selection
+                </button>
+              )}
             </div>
           )}
         </div>
+        {selectedType && <span className="ml-3 text-xs text-gray-500">Showing: <b className="text-[#1d4ed8]">{selectedType}</b></span>}
       </div>
 
-      {/* 4. TABLE YA MATERIALS */}
+      {/* 4. TABLE YA MATERIALS - inaonyesha header tu kama hakuna type iliyochaguliwa */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="hidden md:grid grid-cols-12 px-6 py-3 bg-gray-50/60 text-xs font-bold text-gray-500 border-b">
           <div className="col-span-1">SN</div>
@@ -113,7 +124,9 @@ export default function MaterialsPage(){
           </div>
         ))}
         <div className="flex justify-between items-center px-4 md:px-6 py-4 border-t border-gray-100">
-          <p className="text-xs text-gray-500">Showing {(page-1)*perPage+1} to {Math.min(page*perPage, filtered.length)} of {filtered.length}</p>
+          <p className="text-xs text-gray-500">
+            {selectedType? `Showing ${(page-1)*perPage+1} to ${Math.min(page*perPage, filtered.length)} of ${filtered.length}` : "Select a material type to view data"}
+          </p>
           <div className="flex gap-1">
             <button disabled={page===1} onClick={()=> setPage(p=> Math.max(1,p-1))} className="w-8 h-8 border rounded-lg flex items-center justify-center"><ChevronLeft size={16}/></button>
             <span className="w-8 h-8 bg-[#1d4ed8] text-white rounded-lg flex items-center justify-center text-xs font-bold">{page}</span>
