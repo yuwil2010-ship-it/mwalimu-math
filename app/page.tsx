@@ -123,7 +123,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-extrabold text-center">{tr.nukuuTitle}</h2>
           <p className="text-center text-gray-600 mt-2 text-sm max-w-2xl mx-auto">{tr.nukuuDesc}</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             {kitabuData.map((item) => {
               const total = item.mathTopics + item.csTopics;
               return (
@@ -224,11 +224,11 @@ export default function HomePage() {
             <p className="text-xs mt-2 text-blue-100 leading-relaxed">{tr.footerDesc}</p>
           </div>
           <div>
-            <h4 className="font-bold text-white text-sm">Important Links</h4>
+            <h4 className="font-bold text-white text-sm">Links</h4>
             <ul className="mt-2 text-xs space-y-1.5 text-blue-100">
               <li><a href="https://www.necta.go.tz" target="_blank" className="hover:text-white">Necta</a></li>
               <li><a href="https://www.moe.go.tz" target="_blank" className="hover:text-white">Wizara ya Elimu</a></li>
-              <li><button onClick={scrollToTop} className="hover:text-white font-bold text-left cursor-pointer hover:underline">LY Tech</button></li>
+              <li><button onClick={scrollToTop} className="hover:text-white font-bold text-left cursor-pointer">LY Tech</button></li>
             </ul>
           </div>
           <div>
