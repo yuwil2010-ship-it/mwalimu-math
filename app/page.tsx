@@ -1,6 +1,7 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 import {
   BookOpen, CheckCircle2, Star, Mail, ArrowUp, MapPin, Phone,
   GraduationCap, Award, FileText, Sparkles, Users, BadgeCheck,
@@ -9,15 +10,25 @@ import {
 
 const LIGHT_BG = "from-[#e0f2fe] to-[#bae6fd]"
 
-const kitabuData = [
-  { form: "Form I", icon: BookOpen, mathTopics: 12, csTopics: 8, bg: LIGHT_BG, symbols: ["π", "½", "△", "∑"] },
-  { form: "Form II", icon: Calculator, mathTopics: 11, csTopics: 7, bg: LIGHT_BG, symbols: ["x²", "√", "θ", "a²+b²"] },
-  { form: "Form III", icon: FileText, mathTopics: 8, csTopics: 9, bg: LIGHT_BG, symbols: ["f(x)", "○", "≈", "∠"] },
-  { form: "Form IV", icon: Award, mathTopics: 8, csTopics: 10, bg: LIGHT_BG, symbols: ["→", "P(A)", "[ ]", "∆"] },
-  { form: "Form V", icon: GraduationCap, mathTopics: 9, csTopics: 11, bg: LIGHT_BG, symbols: ["d/dx", "∫", "lim", "∧∨"] },
-  { form: "Form VI", icon: Sparkles, mathTopics: 8, csTopics: 12, bg: LIGHT_BG, symbols: ["i", "σ", "∑", "∂"] },
-  { form: "Mazoezi", icon: CheckCircle2, mathTopics: 56, csTopics: 25, bg: LIGHT_BG, symbols: ["✓", "?", "≠", "∞"] },
-  { form: "Bonus", icon: BadgeCheck, mathTopics: 15, csTopics: 10, bg: LIGHT_BG, symbols: ["2025", "2024", "2023", "NECTA"] },
+type CountMap = Record<string, { math: number; cs: number }>
+type TopicRowDB = {
+  id: number
+  full_key: string
+  form_name: string
+  category: string
+  topic_name: string
+  subject?: string | null
+}
+
+const baseKitabu = [
+  { form: "Form I", icon: BookOpen, bg: LIGHT_BG, symbols: ["π", "½", "△", "∑"] },
+  { form: "Form II", icon: Calculator, bg: LIGHT_BG, symbols: ["x²", "√", "θ", "a²+b²"] },
+  { form: "Form III", icon: FileText, bg: LIGHT_BG, symbols: ["f(x)", "○", "≈", "∠"] },
+  { form: "Form IV", icon: Award, bg: LIGHT_BG, symbols: ["→", "P(A)", "[ ]", "∆"] },
+  { form: "Form V", icon: GraduationCap, bg: LIGHT_BG, symbols: ["d/dx", "∫", "lim", "∧∨"] },
+  { form: "Form VI", icon: Sparkles, bg: LIGHT_BG, symbols: ["i", "σ", "∑", "∂"] },
+  { form: "Mazoezi", icon: CheckCircle2, bg: LIGHT_BG, symbols: ["✓", "?", "≠", "∞"] },
+  { form: "Bonus", icon: BadgeCheck, bg: LIGHT_BG, symbols: ["2025", "2024", "2023", "NECTA"] },
 ]
 
 const t = {
@@ -66,8 +77,41 @@ const t = {
 
 export default function HomePage() {
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
+  const [counts, setCounts] = useState<CountMap>({})
   const tr = t[lang]
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const { data, error } = await supabase.from("topics_catalog").select("*")
+      if (error ||!data) return
+
+      const map: CountMap = {}
+      baseKitabu.forEach(b => { map[b.form] = { math: 0, cs: 0 } })
+
+      ;(data as TopicRowDB[]).forEach((row) => {
+        let form = row.form_name
+        if (row.category === "MAZOEZI") form = "Mazoezi"
+        else if (row.category === "BONUS") form = "Bonus"
+        if (!form ||!map[form]) return
+
+        const subjectField = (row.subject?? "").toLowerCase()
+        const combined = `${row.full_key?? ""} ${row.topic_name?? ""} ${subjectField}`.toLowerCase()
+        const isCS = combined.includes("computer") || combined.includes("comp")
+
+        if (isCS) map[form].cs += 1
+        else map[form].math += 1
+      })
+      setCounts(map)
+    }
+    fetchCounts()
+  }, [])
+
+  const kitabuData = baseKitabu.map(b => ({
+  ...b,
+    mathTopics: counts[b.form]?.math?? 0,
+    csTopics: counts[b.form]?.cs?? 0,
+  }))
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -103,7 +147,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="bg-white border-2 border-blue-100 rounded-xl p-5 shadow-xl relative">
-          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">-50% OFF</div>
+          <div className="absolute -top-2 -right-2 bg-gradient-to-br from-amber-300 to-yellow-500 text-black text-xs font-black px-3 py-1 rounded-full shadow-md border border-yellow-200">-50% OFF</div>
           <h3 className="font-bold">{tr.ofa}</h3>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-3xl font-black text-[#1d4ed8]">1,000</span>
@@ -175,7 +219,7 @@ export default function HomePage() {
             <h4 className="font-bold mt-3 text-sm">{tr.s1t}</h4>
             <p className="text-xs text-gray-600 mt-1.5">{tr.s1d}</p>
             <div className="mt-4">
-              <div className="h-11 flex items-center justify-center text- sm:text- font-bold border rounded-lg bg-gray-50 text-gray-700 px-2 text-center leading-tight whitespace-nowrap">
+              <div className="h-11 flex items-center justify-center font-bold border rounded-lg bg-gray-50 text-gray-700 px-2 text-center leading-tight whitespace-nowrap">
                 Vodacom/Halotel/Airtel/Yas
               </div>
             </div>
