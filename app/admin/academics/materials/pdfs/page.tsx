@@ -1,10 +1,8 @@
 "use client"
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Search, LogOut, ArrowLeft, Globe, Menu, X, Eye } from "lucide-react"
+import { Search, ChevronRight } from "lucide-react"
 
 type TopicRow = {
   id: number
@@ -18,9 +16,9 @@ type TopicRow = {
 }
 
 const FORMS = ["Form I", "Form II", "Form III", "Form IV", "Form V", "Form VI", "Mazoezi", "Bonus"]
-const ALLOWED_ADMINS = ["yuwil2010@gmail.com"] // Gmail yako
+const ALLOWED_ADMINS = ["yuwil2010@gmail.com"]
 
-export default function AdminPage() {
+export default function PdfsPage() {
   const router = useRouter()
   const [authed, setAuthed] = useState(false)
   const [topics, setTopics] = useState<TopicRow[]>([])
@@ -28,16 +26,7 @@ export default function AdminPage() {
   const [filterForm, setFilterForm] = useState("Form I")
   const [search, setSearch] = useState("")
   const [savingId, setSavingId] = useState<number | null>(null)
-  const [lang, setLang] = useState<'sw' | 'en'>('sw')
-  const [menuOpen, setMenuOpen] = useState(false)
 
-  const t = {
-    sw: { viewSite: "Tazama Site", backNotes: "Back to Notes", washa: "Washa Zote", zima: "Zima Zote", searchPh: "Tafuta topic...", topics: "topics", loading: "Inapakia...", noTopic: "Hakuna topic" },
-    en: { viewSite: "View Site", backNotes: "Back to Notes", washa: "Enable All", zima: "Disable All", searchPh: "Search topic...", topics: "topics", loading: "Loading...", noTopic: "No topic" }
-  }
-  const tr = t[lang]
-
-  // CHECK AUTH YA GOOGLE - MPYA
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -61,6 +50,7 @@ export default function AdminPage() {
 
   const fetchTopics = async (formOverride?: string) => {
     const currentForm = formOverride?? filterForm
+    setLoading(true)
     const { data, error } = await supabase.from("topics_catalog").select("*").order("full_key", { ascending: true })
     if (!error && data) {
       let filtered = data as TopicRow[]
@@ -76,11 +66,12 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!authed) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTopics()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed, filterForm])
 
   const handleFilterChange = (form: string) => {
-    setLoading(true)
     setFilterForm(form)
   }
 
@@ -117,109 +108,84 @@ export default function AdminPage() {
     return t.full_key.toLowerCase().includes(search.toLowerCase()) || t.topic_name.toLowerCase().includes(search.toLowerCase())
   })
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/admin/login")
-  }
-
   if (!authed) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><p className="text-sm text-gray-500">{tr.loading}</p></div>
+    return <div className="min-h- flex items-center justify-center"><p className="text-sm text-gray-500">Inapakia...</p></div>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-[#1d4ed8] text-white sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="font-black text-sm sm:text-base truncate">Mwalimu Math - Admin Panel</h1>
-          <div className="hidden lg:flex gap-2 items-center">
-            <Link href="/notes" className="text-xs bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-full inline-flex items-center gap-1"><ArrowLeft size={12}/> {tr.backNotes}</Link>
-            <Link href="/" className="text-xs bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-full inline-flex items-center gap-1"><Eye size={12}/> {tr.viewSite}</Link>
-            <div className="flex items-center gap-1 bg-blue-600 border border-blue-500 rounded-full px-3 py-1">
-              <Globe size={14} className="text-white"/>
-              <select value={lang} onChange={(e)=> setLang(e.target.value as 'sw'|'en')} className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer">
-                <option value="sw" className="text-black">Kiswahili</option>
-                <option value="en" className="text-black">English</option>
-              </select>
-            </div>
-            <button onClick={handleLogout} className="p-2 bg-blue-600 hover:bg-blue-500 rounded-full cursor-pointer"><LogOut size={14} /></button>
-          </div>
-          <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden p-2.5 bg-blue-600 rounded-xl">{menuOpen? <X size={20} /> : <Menu size={20} />}</button>
+    <div className="space-y-4">
+      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
+        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+          <span>Dashboard</span>
+          <ChevronRight size={14} />
+          <span>Academics</span>
+          <ChevronRight size={14} />
+          <span>Manage Materials</span>
+          <ChevronRight size={14} />
+          <span className="font-bold text-[#1d4ed8]">Pdfs</span>
         </div>
-        {menuOpen && (
-          <div className="lg:hidden border-t border-blue-500 bg-[#1e40af]">
-            <div className="px-4 py-4 space-y-3">
-              <Link href="/notes" onClick={() => setMenuOpen(false)} className="w-full text-sm bg-blue-600 px-4 py-3 rounded-xl inline-flex items-center gap-2 font-bold"><ArrowLeft size={16}/> {tr.backNotes}</Link>
-              <Link href="/" onClick={() => setMenuOpen(false)} className="w-full text-sm bg-blue-600 px-4 py-3 rounded-xl inline-flex items-center gap-2 font-bold"><Eye size={16}/> {tr.viewSite}</Link>
-              <button onClick={handleLogout} className="w-full text-sm bg-red-600 px-4 py-3 rounded-xl inline-flex items-center gap-2 font-bold"><LogOut size={16} /> Logout</button>
-            </div>
-          </div>
-        )}
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-2xl border p-4 mb-6 shadow-sm">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2 mb-5">
-            <button onClick={() => handleFilterChange("All")} className={`w-full px-3 py-2.5 rounded-full text-xs font-bold border cursor-pointer ${filterForm === "All"? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-gray-50"}`}>All</button>
-            {FORMS.map(f => (
-              <button key={f} onClick={() => handleFilterChange(f)} className={`w-full px-3 py-2.5 rounded-full text-xs font-bold border cursor-pointer ${filterForm === f? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-gray-50"}`}>{f}</button>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-start">
-            <div className="flex items-center gap-2 w-full">
-              <div className="relative flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={tr.searchPh} className="pl-9 pr-4 py-2.5 border rounded-full text-xs w-full outline-none" />
-              </div>
-              <span className="text-xs text-gray-500 font-bold bg-gray-100 px-3 py-2 rounded-full">{filteredTopics.length} {tr.topics}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 w-full md:w-auto">
-              <button onClick={() => bulkAction("on")} className="w-full px-4 py-2.5 bg-green-600 text-white rounded-full text-xs font-bold">{tr.washa} ({filterForm})</button>
-              <button onClick={() => bulkAction("off")} className="w-full px-4 py-2.5 bg-red-600 text-white rounded-full text-xs font-bold">{tr.zima}</button>
-            </div>
-          </div>
+        <div className="w-full md:w-1/2 md:max-w-md relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search material..." className="w-full pl-9 pr-4 py-2 rounded-full border border-gray-200/70 bg-gray-50 text-xs outline-none focus:bg-white focus:border-gray-300" />
         </div>
+      </div>
 
-        <div className="hidden md:block bg-white rounded-2xl border overflow-hidden shadow-sm">
-          <div className="overflow-auto">
-            <table className="w-full text-sm min-w-">
-              <thead className="bg-gray-50 text-xs text-gray-500">
-                <tr>
-                  <th className="text-left px-4 py-3 font-bold">Topic (full_key)</th>
-                  <th className="text-left px-4 py-3 font-bold">PDF?</th>
-                  <th className="text-left px-4 py-3 font-bold">Storage Path</th>
-                  <th className="text-center px-4 py-3 font-bold">Ipo / Haijapakiwa</th>
-                  <th className="text-center px-4 py-3 font-bold">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading? <tr><td colSpan={5} className="text-center py-10 text-gray-400">{tr.loading}</td></tr>
-                : filteredTopics.length === 0? <tr><td colSpan={5} className="text-center py-10 text-gray-400">{tr.noTopic}</td></tr>
-                : filteredTopics.map(row => (
-                  <tr key={row.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3"><div className="font-medium text-xs">{row.full_key}</div><div className="text- text-gray-400">{row.category} • {row.form_name}</div></td>
-                    <td className="px-4 py-3"><button onClick={() => toggleHasPdf(row)} className={`text- px-2 py-1 rounded-full font-bold ${row.has_pdf? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{row.has_pdf? "PDF Ipo" : "Hakuna PDF"}</button></td>
-                    <td className="px-4 py-3 text- text-gray-500 max-w- truncate">{row.storage_path || "-"}</td>
-                    <td className="px-4 py-3 text-center"><span className={`text- px-2 py-1 rounded-full font-bold ${row.is_available? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{row.is_available? "Ipo" : "Haijapakiwa"}</span></td>
-                    <td className="px-4 py-3 text-center"><button disabled={savingId === row.id} onClick={() => toggleAvailability(row)} className={`px-4 py-1.5 rounded-full text-xs font-bold disabled:opacity-50 ${row.is_available? "bg-red-600 text-white" : "bg-[#1d4ed8] text-white"}`}>{savingId === row.id? "..." : row.is_available? "ZIMA" : "WASHA"}</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="md:hidden space-y-3">
-          {loading? <div className="bg-white rounded-2xl border p-10 text-center text-sm text-gray-400">{tr.loading}</div>
-          : filteredTopics.length === 0? <div className="bg-white rounded-2xl border p-10 text-center text-sm text-gray-400">{tr.noTopic}</div>
-          : filteredTopics.map(row => (
-            <div key={row.id} className="bg-white rounded-2xl border p-4 shadow-sm">
-              <div className="flex justify-between items-start gap-2 mb-3">
-                <div className="flex-1 min-w-0"><div className="font-bold text-xs truncate">{row.full_key}</div><div className="text- text-gray-400 mt-1">{row.category} • {row.form_name}</div></div>
-                <span className={`text- px-2.5 py-1 rounded-full font-bold ${row.is_available? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{row.is_available? "Ipo" : "Haijapakiwa"}</span>
-              </div>
-              <button disabled={savingId === row.id} onClick={() => toggleAvailability(row)} className={`w-full py-2.5 rounded-full text-xs font-bold ${row.is_available? "bg-red-600 text-white" : "bg-[#1d4ed8] text-white"}`}>{savingId === row.id? "..." : row.is_available? "ZIMA - Funga" : "WASHA - Fungua"}</button>
-            </div>
+      <div className="bg-white rounded-xl border border-gray-100 p-3 space-y-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-1.5">
+          <button onClick={() => handleFilterChange("All")} className={`px-2 py-1.5 rounded-full text- font-bold border ${filterForm === "All"? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-gray-50"}`}>All</button>
+          {FORMS.map(f => (
+            <button key={f} onClick={() => handleFilterChange(f)} className={`px-2 py-1.5 rounded-full text- font-bold border truncate ${filterForm === f? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-gray-50"}`}>{f}</button>
           ))}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
+          <span className="text- text-gray-500 font-bold bg-gray-100 px-2.5 py-1 rounded-full">{filteredTopics.length} topics</span>
+          <div className="flex gap-1.5">
+            <button onClick={() => bulkAction("on")} className="px-3 py-1.5 bg-green-600 text-white rounded-full text- font-bold">Washa ({filterForm})</button>
+            <button onClick={() => bulkAction("off")} className="px-3 py-1.5 bg-red-600 text-white rounded-full text- font-bold">Zima</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="hidden md:block overflow-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-gray-50 text- text-gray-500">
+              <tr>
+                <th className="text-left px-3 py-2 font-bold">Topic (full_key)</th>
+                <th className="text-left px-3 py-2 font-bold">PDF?</th>
+                <th className="text-left px-3 py-2 font-bold">Storage Path</th>
+                <th className="text-center px-3 py-2 font-bold">Ipo / Haijapakiwa</th>
+                <th className="text-center px-3 py-2 font-bold">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading? <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-xs">Inapakia...</td></tr>
+                : filteredTopics.length === 0? <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-xs">Hakuna topic</td></tr>
+                  : filteredTopics.map(row => (
+                    <tr key={row.id} className="border-t hover:bg-gray-50">
+                      <td className="px-3 py-2"><div className="font-medium text-">{row.full_key}</div><div className="text- text-gray-400">{row.category} • {row.form_name}</div></td>
+                      <td className="px-3 py-2"><button onClick={() => toggleHasPdf(row)} className={`text- px-2 py-0.5 rounded-full font-bold ${row.has_pdf? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{row.has_pdf? "PDF Ipo" : "Hakuna PDF"}</button></td>
+                      <td className="px-3 py-2 text- text-gray-500 max-w- truncate">{row.storage_path || "-"}</td>
+                      <td className="px-3 py-2 text-center"><span className={`text- px-2 py-0.5 rounded-full font-bold ${row.is_available? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{row.is_available? "Ipo" : "Haijapakiwa"}</span></td>
+                      <td className="px-3 py-2 text-center"><button disabled={savingId === row.id} onClick={() => toggleAvailability(row)} className={`px-3 py-1 rounded-full text- font-bold disabled:opacity-50 ${row.is_available? "bg-red-600 text-white" : "bg-[#1d4ed8] text-white"}`}>{savingId === row.id? "..." : row.is_available? "ZIMA" : "WASHA"}</button></td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="md:hidden space-y-2 p-2">
+          {loading? <div className="bg-white rounded-xl border p-6 text-center text-xs text-gray-400">Inapakia...</div>
+            : filteredTopics.length === 0? <div className="bg-white rounded-xl border p-6 text-center text-xs text-gray-400">Hakuna topic</div>
+              : filteredTopics.map(row => (
+                <div key={row.id} className="bg-white rounded-xl border p-3">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <div className="flex-1 min-w-0"><div className="font-bold text- truncate">{row.full_key}</div><div className="text- text-gray-400 mt-0.5">{row.category} • {row.form_name}</div></div>
+                    <span className={`text- px-2 py-0.5 rounded-full font-bold ${row.is_available? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{row.is_available? "Ipo" : "Haijapakiwa"}</span>
+                  </div>
+                  <button disabled={savingId === row.id} onClick={() => toggleAvailability(row)} className={`w-full py-2 rounded-full text- font-bold ${row.is_available? "bg-red-600 text-white" : "bg-[#1d4ed8] text-white"}`}>{savingId === row.id? "..." : row.is_available? "ZIMA - Funga" : "WASHA - Fungua"}</button>
+                </div>
+              ))}
         </div>
       </div>
     </div>
