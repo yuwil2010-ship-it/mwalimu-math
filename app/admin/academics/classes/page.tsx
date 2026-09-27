@@ -25,23 +25,41 @@ export default function ClassesPage(){
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-3">
-        <h1 className="text-xl font-black">Classes List</h1>
-        <div className="relative w-full sm:w-96">
+      {/* 1. BREADCRUMBS + SEARCH - kama Admin Page */}
+      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
+        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+          <span>Dashboard</span>
+          <ChevronRight size={14} />
+          <span>Academics</span>
+          <ChevronRight size={14} />
+          <span className="font-bold text-[#1d4ed8]">Manage Classes</span>
+        </div>
+        <div className="w-full md:w-1/2 md:max-w-md relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-          <input value={search} onChange={e=> setSearch(e.target.value)} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border bg-white text-sm outline-none" />
+          <input value={search} onChange={e=> { setSearch(e.target.value); setPage(1) }} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300" />
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
-        <select value={perPage} onChange={e=> setPerPage(Number(e.target.value))} className="border rounded-xl px-3 py-2 text-sm bg-white">
-          <option value={10}>10 per page</option><option value={25}>25 per page</option><option value={50}>50 per page</option>
-        </select>
-        <button className="bg-[#2d2a7a] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#1e1c5a]"><Plus size={16}/> Add</button>
+      {/* 2. TITLE + PER PAGE + ADD - mstari mmoja sawa */}
+      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
+        <h1 className="text-lg font-extrabold">Classes List</h1>
+
+        <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500 text-xs">Show</span>
+            <select value={perPage} onChange={e=> { setPerPage(Number(e.target.value)); setPage(1) }} className="border border-gray-200/70 rounded-lg px-3 py-2 text-sm bg-white outline-none">
+              <option value={10}>10 per page</option>
+              <option value={25}>25 per page</option>
+              <option value={50}>50 per page</option>
+              <option value={100}>100 per page</option>
+            </select>
+          </div>
+          <button className="bg-[#2d2a7a] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#1e1c5a]"><Plus size={16}/> Add</button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="hidden md:grid grid-cols-12 px-6 py-3 bg-gray-50 text-xs font-bold text-gray-500">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="hidden md:grid grid-cols-12 px-6 py-3 bg-gray-50/60 text-xs font-bold text-gray-500 border-b">
           <div className="col-span-1">SN</div>
           <div className="col-span-3">Name</div>
           <div className="col-span-2">Teacher</div>
@@ -51,22 +69,22 @@ export default function ClassesPage(){
           <div className="col-span-2 text-right">Actions</div>
         </div>
         {paged.map((c,i)=>(
-          <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 px-6 py-4 border-t text-sm items-center gap-2 md:gap-0">
+          <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 px-6 py-4 border-b border-gray-100 text-sm items-center gap-2 md:gap-0 hover:bg-gray-50/40">
             <div className="hidden md:block">{(page-1)*perPage + i + 1}</div>
-            <div className="font-medium">{c.name}</div>
-            <div className="text-gray-500 text-xs md:text-sm">{c.teacher}</div>
-            <div><span className="font-bold text-[#1d4ed8]">{c.students}</span><span className="text-gray-400 text-xs">/{c.capacity}</span></div>
-            <div className="text-xs text-gray-500">{c.room}</div>
-            <div><span className={`px-3 py-1 rounded-full text-xs font-bold ${c.status==='active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{c.status}</span></div>
-            <div className="flex justify-end gap-3"><Eye size={18} className="cursor-pointer hover:text-[#1d4ed8]"/><Pencil size={18} className="cursor-pointer hover:text-[#1d4ed8]"/><Trash2 size={18} className="cursor-pointer text-gray-300 hover:text-red-500"/></div>
+            <div className="font-medium col-span-3">{c.name}</div>
+            <div className="text-gray-500 text-xs md:text-sm col-span-2">{c.teacher}</div>
+            <div className="col-span-1"><span className="font-bold text-[#1d4ed8]">{c.students}</span><span className="text-gray-400 text-xs">/{c.capacity}</span></div>
+            <div className="text-xs text-gray-500 col-span-2">{c.room}</div>
+            <div className="col-span-1"><span className={`px-3 py-1 rounded-full text-xs font-bold ${c.status==='active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{c.status}</span></div>
+            <div className="flex justify-end gap-3 col-span-2"><Eye size={18} className="cursor-pointer hover:text-[#1d4ed8]"/><Pencil size={18} className="cursor-pointer hover:text-[#1d4ed8]"/><Trash2 size={18} className="cursor-pointer text-gray-300 hover:text-red-500"/></div>
           </div>
         ))}
-        <div className="flex justify-between items-center px-6 py-4 border-t text-sm text-gray-500">
-          <span>Showing {(page-1)*perPage+1} to {Math.min(page*perPage, filtered.length)} of {filtered.length}</span>
-          <div className="flex gap-2">
-            <button onClick={()=> setPage(p=> Math.max(1,p-1))} className="w-9 h-9 border rounded-xl flex items-center justify-center"><ChevronLeft size={16}/></button>
-            <span className="w-9 h-9 bg-[#1d4ed8] text-white rounded-xl flex items-center justify-center font-bold">{page}</span>
-            <button onClick={()=> setPage(p=> Math.min(totalPages,p+1))} className="w-9 h-9 border rounded-xl flex items-center justify-center"><ChevronRight size={16}/></button>
+        <div className="flex justify-between items-center px-4 md:px-6 py-4 border-t border-gray-100">
+          <p className="text-xs text-gray-500">Showing {(page-1)*perPage+1} to {Math.min(page*perPage, filtered.length)} of {filtered.length}</p>
+          <div className="flex gap-1">
+            <button disabled={page===1} onClick={()=> setPage(p=> Math.max(1,p-1))} className="w-8 h-8 border rounded-lg flex items-center justify-center"><ChevronLeft size={16}/></button>
+            <span className="w-8 h-8 bg-[#1d4ed8] text-white rounded-lg flex items-center justify-center text-xs font-bold">{page}</span>
+            <button disabled={page===totalPages} onClick={()=> setPage(p=> Math.min(totalPages,p+1))} className="w-8 h-8 border rounded-lg flex items-center justify-center"><ChevronRight size={16}/></button>
           </div>
         </div>
       </div>
