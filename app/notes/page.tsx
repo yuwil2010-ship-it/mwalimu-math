@@ -6,7 +6,7 @@ import { Check, Smartphone, Calculator, ArrowLeft, Globe, MessageCircle } from "
 import { supabase } from "@/lib/supabase"
 import { validatePaymentForm, normalizeTZPhone } from "@/lib/validation"
 
-const syllabus: Record<string, string[]> = {
+const mathSyllabus: Record<string, string[]> = {
   "Form I": ["Concepts of Mathematics","Numbers I","Fractions","Decimals and Percentages","Metric Units","Approximations","Introduction to Geometry","Algebra","Numbers II","Ratio, Profit and Loss","Coordinate Geometry","Perimeters and Areas"],
   "Form II": ["Exponents and Radicals","Algebra","Quadratic Equations","Logarithms","Congruence","Similarity","Geometrical Transformation","Pythagoras Theorem","Trigonometry","Sets","Statistics"],
   "Form III": ["Relations","Functions","Statistics","Rates and Variations","Sequences and Series","Circles","Earth as a Sphere","Accounting"],
@@ -16,11 +16,34 @@ const syllabus: Record<string, string[]> = {
   "Mazoezi": [],
   "Bonus": []
 }
-const mazoeziByForm: Record<string, string[]> = {
-  "Form I": syllabus["Form I"], "Form II": syllabus["Form II"], "Form III": syllabus["Form III"],
-  "Form IV": syllabus["Form IV"], "Form V": syllabus["Form V"], "Form VI": syllabus["Form VI"],
+
+const computerSyllabus: Record<string, string[]> = {
+  "Form I": ["Introduction to Computer","Computer Evolution","Hardware Components","Software Concepts","Operating System","Word Processing","Internet Basics","Computer Safety & Ethics"],
+  "Form II": ["Spreadsheet","Database Concepts","Computer Networks","Information Systems","Desktop Publishing","Programming Concepts","Computer Ethics"],
+  "Form III": ["Computer Programming","Data Structures","System Development","Computer Maintenance","Multimedia","Communication Networks","Information Security"],
+  "Form IV": ["Advanced Programming","Web Development","Database Management","System Analysis & Design","Computer Graphics","E-commerce","Project Management"],
+  "Form V": ["Computer Architecture","Advanced Database","Operating Systems","Network Administration","Software Engineering","Object Oriented Programming","Data Communication"],
+  "Form VI": ["Advanced Networking","System Security","Mobile Computing","Information System Management","Advanced Software Engineering","Research Methods in ICT","ICT Project"],
+  "Mazoezi": [],
+  "Bonus": []
 }
-// Imebadilishwa ili i-fit kwenye simu ndogo
+
+const syllabusBySubject: Record<string, Record<string, string[]>> = {
+  Mathematics: mathSyllabus,
+  Computer: computerSyllabus,
+}
+
+const mazoeziBySubject: Record<string, Record<string, string[]>> = {
+  Mathematics: {
+    "Form I": mathSyllabus["Form I"], "Form II": mathSyllabus["Form II"], "Form III": mathSyllabus["Form III"],
+    "Form IV": mathSyllabus["Form IV"], "Form V": mathSyllabus["Form V"], "Form VI": mathSyllabus["Form VI"],
+  },
+  Computer: {
+    "Form I": computerSyllabus["Form I"], "Form II": computerSyllabus["Form II"], "Form III": computerSyllabus["Form III"],
+    "Form IV": computerSyllabus["Form IV"], "Form V": computerSyllabus["Form V"], "Form VI": computerSyllabus["Form VI"],
+  }
+}
+
 const bonusForms = [
   { value: "Form II NECTA", label: "Necta FII" },
   { value: "Form IV NECTA", label: "Necta FIV" },
@@ -28,22 +51,44 @@ const bonusForms = [
 ]
 const currentYear = new Date().getFullYear()
 const nectaYears = Array.from({ length: 5 }, (_, i) => `Necta ${currentYear - i}`)
+const subjects = ["Mathematics", "Computer"] as const
 
 const translations = {
-  sw: { rudi: "Rudi Nyumbani", title: "Chagua Topic Unayohitaji", muhtasari: "Muhtasari wa Malipo", empty: "Hujachagua topic bado.", jumla: "Jumla:", chaguaMtandao: "Chagua Mtandao", simuMalipo: "Namba ya Simu ya Malipo", whatsappLabel: "Namba ya WhatsApp ya Kupokea PDF", whatsappNote: "Utapokea PDF kwenye WhatsApp mara baada ya malipo kuthibitishwa", ipo: "Ipo", haijapakiwa: "Haijapakiwa" },
-  en: { rudi: "Back Home", title: "Choose Topic You Need", muhtasari: "Payment Summary", empty: "No topic selected yet.", jumla: "Total:", chaguaMtandao: "Choose Network", simuMalipo: "Payment Phone Number", whatsappLabel: "WhatsApp Number to Receive PDF", whatsappNote: "You will receive PDF on WhatsApp after payment is confirmed", ipo: "Available", haijapakiwa: "Not Uploaded" }
+  sw: {
+    rudi: "Rudi Nyumbani",
+    chaguaSomo: "Chagua somo unalohitaji:",
+    chaguaKidato: "Chagua kidato unachohitaji:",
+    chaguaTopic: "Chagua topic unayohitaji:",
+    muhtasari: "Muhtasari wa Malipo", empty: "Hujachagua topic bado.", jumla: "Jumla:",
+    chaguaMtandao: "Chagua Mtandao", simuMalipo: "Namba ya Simu ya Malipo",
+    whatsappLabel: "Namba ya WhatsApp ya Kupokea PDF",
+    whatsappNote: "Utapokea PDF kwenye WhatsApp mara baada ya malipo kuthibitishwa",
+    ipo: "Ipo", haijapakiwa: "Haijapakiwa"
+  },
+  en: {
+    rudi: "Back Home",
+    chaguaSomo: "Choose subject you need:",
+    chaguaKidato: "Choose class you need:",
+    chaguaTopic: "Choose topic you need:",
+    muhtasari: "Payment Summary", empty: "No topic selected yet.", jumla: "Total:",
+    chaguaMtandao: "Choose Network", simuMalipo: "Payment Phone Number",
+    whatsappLabel: "WhatsApp Number to Receive PDF",
+    whatsappNote: "You will receive PDF on WhatsApp after payment is confirmed",
+    ipo: "Available", haijapakiwa: "Not Uploaded"
+  }
 }
 
 function NotesContent() {
   const searchParams = useSearchParams()
   const initialForm = searchParams.get("form") || "Form I"
+  const [activeSubject, setActiveSubject] = useState<typeof subjects[number]>("Mathematics")
   const [activeForm, setActiveForm] = useState(initialForm)
   const [mazoeziForm, setMazoeziForm] = useState("Form I")
   const [bonusForm, setBonusForm] = useState("Form II NECTA")
   const [selected, setSelected] = useState<string[]>([])
   const [phone, setPhone] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
-  const [method, setMethod] = useState("M-Pesa")
+  const method = "Vodacom/Halotel/Airtel/Yas"
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
   const [availability, setAvailability] = useState<Record<string, boolean>>({})
   const [loadingTopics, setLoadingTopics] = useState(true)
@@ -66,27 +111,32 @@ function NotesContent() {
   }, [])
 
   const getCurrentTopics = () => {
-    if (activeForm === "Mazoezi") return mazoeziByForm[mazoeziForm] || []
+    if (activeForm === "Mazoezi") return mazoeziBySubject[activeSubject][mazoeziForm] || []
     if (activeForm === "Bonus") return nectaYears
-    return syllabus[activeForm] || []
+    return syllabusBySubject[activeSubject][activeForm] || []
   }
+
   const getKeyPrefix = () => {
-    if (activeForm === "Mazoezi") return `Mazoezi - ${mazoeziForm}`
-    if (activeForm === "Bonus") return bonusForm
-    return activeForm
+    if (activeForm === "Mazoezi") return `${activeSubject} - Mazoezi - ${mazoeziForm}`
+    if (activeForm === "Bonus") return `${activeSubject} - ${bonusForm}`
+    return `${activeSubject} - ${activeForm}`
   }
+
   const toggleTopic = (topic: string) => {
     const prefix = getKeyPrefix()
     const key = `${prefix} - ${topic}`
-    if (!availability[key]) return
+    if (availability[key] === false) return
     setSelected(prev => prev.includes(key)? prev.filter(t => t!== key) : [...prev, key])
   }
+
   const isTopicSelected = (topic: string) => {
     const prefix = getKeyPrefix()
     const key = `${prefix} - ${topic}`
     return selected.includes(key)
   }
+
   const total = useMemo(() => selected.length * 1000, [selected])
+
   const handleLipa = async () => {
     if (!phone ||!whatsapp || selected.length === 0) {
       alert("Jaza namba na chagua topic")
@@ -117,27 +167,33 @@ function NotesContent() {
         lang: lang
       }).select().single()
       if (orderErr) throw orderErr
+
       const { data: catalogRows } = await supabase.from('topics_catalog').select('id, full_key, file_path').in('full_key', selected)
       type CatalogRow = { id: string; full_key: string; file_path: string | null }
       const catalogMap = new Map<string, CatalogRow>(
         (catalogRows as CatalogRow[] | null)?.map(r => [r.full_key, r])?? []
       )
+
       const items = selected.map(fullKey => {
+        const parts = fullKey.split(' - ')
         let category = 'NOTES'
-        let form_name = fullKey.split(' - ')[0]
-        let topic_name = fullKey.split(' - ')[1]
-        if (fullKey.startsWith('Mazoezi')) {
-          const p = fullKey.split(' - ')
+        let form_name = ''
+        let topic_name = ''
+
+        if (fullKey.includes('Mazoezi')) {
           category = 'MAZOEZI'
-          form_name = p[1]
-          topic_name = p[2]
-        }
-        if (fullKey.includes('NECTA')) {
-          const p = fullKey.split(' - ')
+          form_name = parts[2]
+          topic_name = parts[3]
+        } else if (fullKey.includes('NECTA')) {
           category = 'BONUS'
-          form_name = p[0]
-          topic_name = p[1]
+          form_name = parts[1]
+          topic_name = parts[2]
+        } else {
+          category = 'NOTES'
+          form_name = parts[1]
+          topic_name = parts[2]
         }
+
         const catalog = catalogMap.get(fullKey)
         return {
           order_id: order.id,
@@ -150,8 +206,10 @@ function NotesContent() {
           price: 1000
         }
       })
+
       const { error: itemsErr } = await supabase.from('order_items').insert(items)
       if (itemsErr) throw itemsErr
+
       await supabase.from('payments').insert({
         order_id: order.id,
         method: method,
@@ -159,6 +217,7 @@ function NotesContent() {
         amount: total,
         status: 'pending'
       })
+
       const res = await fetch("/api/snippe/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -167,7 +226,7 @@ function NotesContent() {
           amount: total,
           phone: cleanPhone,
           topic: selected[0] || "Mwalimu Math Notes",
-          form: activeForm
+          form: `${activeSubject} - ${activeForm}`
         })
       })
       const data = await res.json()
@@ -213,24 +272,40 @@ function NotesContent() {
             </Link>
           </div>
 
-          <h1 className="text-2xl font-extrabold">{tr.title} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h1>
+          <div className="mt-2">
+            <h2 className="text- font-extrabold text-gray-900">{tr.chaguaSomo} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h2>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              {subjects.map(subj => (
+                <button
+                  key={subj}
+                  onClick={() => setActiveSubject(subj)}
+                  className={`w-full px-3 py-2.5 rounded-full text-sm font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center whitespace-nowrap ${activeSubject === subj? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300'}`}
+                >
+                  {subj}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          <div className="grid grid-cols-4 gap-2 mt-4">
-            {Object.keys(syllabus).map(form => (
-              <button
-                key={form}
-                onClick={() => setActiveForm(form)}
-                className={`w-full px-2 py-2 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center whitespace-nowrap overflow-hidden text-ellipsis leading-tight ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}
-              >
-                {form}
-              </button>
-            ))}
+          <div className="mt-6">
+            <h2 className="text- font-extrabold text-gray-900">{tr.chaguaKidato}</h2>
+            <div className="grid grid-cols-4 gap-2 mt-3">
+              {Object.keys(mathSyllabus).map(form => (
+                <button
+                  key={form}
+                  onClick={() => setActiveForm(form)}
+                  className={`w-full px-2 py-2 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center whitespace-nowrap overflow-hidden text-ellipsis leading-tight ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}
+                >
+                  {form}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-6 bg-white rounded-2xl border p-4">
             {activeForm === "Mazoezi" && (
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-4">
-                {Object.keys(mazoeziByForm).map(f => (
+                {Object.keys(mazoeziBySubject[activeSubject]).map(f => (
                   <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
@@ -243,23 +318,26 @@ function NotesContent() {
               </div>
             )}
 
+            <h3 className="text- font-bold mb-3">{tr.chaguaTopic} <span className="text-xs font-normal text-gray-500">({activeSubject} - {activeForm === "Mazoezi"? mazoeziForm : activeForm === "Bonus"? bonusForm : activeForm})</span></h3>
+
             <div className="space-y-2">
               {currentTopics.map(topic => {
                 const prefix = getKeyPrefix()
                 const key = `${prefix} - ${topic}`
-                const isAvailable = availability[key] || false
+                const hasExplicitAvailability = Object.prototype.hasOwnProperty.call(availability, key)
+                const showAvailable = hasExplicitAvailability? availability[key] : true
                 const selectedNow = isTopicSelected(topic)
                 return (
                   <div
                     key={topic}
-                    onClick={() => isAvailable && toggleTopic(topic)}
-                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${isAvailable? 'cursor-pointer hover:shadow-sm hover:border-gray-300' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!isAvailable? 'opacity-60' : ''}`}
+                    onClick={() => showAvailable && toggleTopic(topic)}
+                    className={`flex justify-between items-center p-3 rounded-xl border transition-all duration-200 ${showAvailable? 'cursor-pointer hover:shadow-sm hover:border-gray-300' : 'cursor-not-allowed'} ${selectedNow? 'bg-blue-50 border-[#1d4ed8] shadow-sm' : 'bg-white'} ${!showAvailable? 'opacity-60' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" disabled={!isAvailable} checked={selectedNow && isAvailable} onChange={() => isAvailable && toggleTopic(topic)} onClick={(e) => e.stopPropagation()} className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" />
-                      <span className={`text-sm font-medium ${!isAvailable? 'text-gray-400' : ''}`}>{topic}</span>
+                      <input type="checkbox" disabled={!showAvailable} checked={selectedNow && showAvailable} onChange={() => showAvailable && toggleTopic(topic)} onClick={(e) => e.stopPropagation()} className="w-5 h-5 accent-[#1d4ed8] cursor-pointer" />
+                      <span className={`text-sm font-medium ${!showAvailable? 'text-gray-400' : ''}`}>{topic}</span>
                     </div>
-                    <span className={`text-xs font-bold ${isAvailable? 'text-green-600' : 'text-gray-400'}`}>{isAvailable? tr.ipo : tr.haijapakiwa}</span>
+                    <span className={`text-xs font-bold ${showAvailable? 'text-green-600' : 'text-gray-400'}`}>{showAvailable? tr.ipo : tr.haijapakiwa}</span>
                   </div>
                 )
               })}
@@ -279,12 +357,10 @@ function NotesContent() {
           </div>
           <div className="mt-5">
             <p className="text-xs font-bold mb-2">{tr.chaguaMtandao}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[{ name: "M-Pesa", color: "bg-red-600" }, { name: "Mixx by Yas", color: "bg-purple-600" }, { name: "Airtel Money", color: "bg-red-500" }, { name: "HaloPesa", color: "bg-orange-500" }].map(m => (
-                <button key={m.name} onClick={() => setMethod(m.name)} className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-sm active:scale-[0.98] ${method === m.name? 'border-[#1d4ed8] bg-blue-50 shadow-sm' : 'hover:bg-gray-50 hover:border-gray-300'}`}>
-                  <span className={`w-2 h-2 rounded-full ${m.color}`}></span>{m.name}
-                </button>
-              ))}
+            <div className="grid grid-cols-1 gap-2">
+              <div className="p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 bg-blue-50 border-[#1d4ed8]">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>Vodacom/Halotel/Airtel/Yas
+              </div>
             </div>
           </div>
           <div className="mt-4 space-y-3">
