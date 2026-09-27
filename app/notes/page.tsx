@@ -18,12 +18,12 @@ const mathSyllabus: Record<string, string[]> = {
 }
 
 const computerSyllabus: Record<string, string[]> = {
-  "Form I": ["Introduction to Computer","Computer Evolution","Hardware Components","Software Concepts","Operating System","Word Processing","Internet Basics","Computer Safety & Ethics"],
-  "Form II": ["Spreadsheet","Database Concepts","Computer Networks","Information Systems","Desktop Publishing","Programming Concepts","Computer Ethics"],
-  "Form III": ["Computer Programming","Data Structures","System Development","Computer Maintenance","Multimedia","Communication Networks","Information Security"],
-  "Form IV": ["Advanced Programming","Web Development","Database Management","System Analysis & Design","Computer Graphics","E-commerce","Project Management"],
-  "Form V": ["Computer Architecture","Advanced Database","Operating Systems","Network Administration","Software Engineering","Object Oriented Programming","Data Communication"],
-  "Form VI": ["Advanced Networking","System Security","Mobile Computing","Information System Management","Advanced Software Engineering","Research Methods in ICT","ICT Project"],
+  "Form I": ["Data and information","The computer","Computer software","Computer handling","Computer evolution"],
+  "Form II": ["Word processing","Spreadsheet","Network and communications","The internet"],
+  "Form III": ["Impact of ICT on society","Web development","DB information system"],
+  "Form IV": ["Manage DB information system","Presentation","Desktop publishing","Multimedia"],
+  "Form V": ["Computer basics","Data representation","Problem solving","C++ programming","Website development","System development"],
+  "Form VI": ["Data structure and algorithms","Information system","Communication and networking","Visual programming","Computer security and privacy","IT career and environment","Emerging technologies and trends"],
   "Mazoezi": [],
   "Bonus": []
 }
@@ -53,6 +53,33 @@ const currentYear = new Date().getFullYear()
 const nectaYears = Array.from({ length: 5 }, (_, i) => `Necta ${currentYear - i}`)
 const subjects = ["Mathematics", "Computer"] as const
 
+const NETWORKS = [
+  { id: "Vodacom", label: "Vodacom", sub: "M-Pesa", prefixes: ["74","75","76"], color: "bg-red-600" },
+  { id: "Yas", label: "Yas", sub: "Mixx", prefixes: ["71","65","67"], color: "bg-blue-600" },
+  { id: "Airtel", label: "Airtel", sub: "Money", prefixes: ["68","69","78","79"], color: "bg-red-500" },
+  { id: "Halotel", label: "Halotel", sub: "HaloPesa", prefixes: ["62"], color: "bg-orange-500" },
+] as const
+
+type NetworkId = typeof NETWORKS[number]["id"]
+
+function cleanPhone(phone: string): string {
+  let p = phone.replace(/\s+/g, "").replace(/^\+/, "")
+  if (p.startsWith("255")) p = "0" + p.slice(3)
+  return p
+}
+function getPrefix(phone: string): string {
+  const c = cleanPhone(phone)
+  if (c.length < 3) return ""
+  if (c.startsWith("0")) return c.slice(1,3)
+  return c.slice(0,2)
+}
+function isPhoneMatchesNetwork(phone: string, networkId: NetworkId): boolean {
+  const prefix = getPrefix(phone)
+  const net = NETWORKS.find(n => n.id === networkId)
+  if (!net ||!prefix) return false
+  return (net.prefixes as readonly string[]).includes(prefix)
+}
+
 const translations = {
   sw: {
     rudi: "Rudi Nyumbani",
@@ -60,7 +87,7 @@ const translations = {
     chaguaKidato: "Chagua kidato unachohitaji:",
     chaguaTopic: "Chagua topic unayohitaji:",
     muhtasari: "Muhtasari wa Malipo", empty: "Hujachagua topic bado.", jumla: "Jumla:",
-    chaguaMtandao: "Chagua Mtandao", simuMalipo: "Namba ya Simu ya Malipo",
+    chaguaMtandao: "Chagua Mtandao wa Malipo", simuMalipo: "Namba ya Simu ya Malipo",
     whatsappLabel: "Namba ya WhatsApp ya Kupokea PDF",
     whatsappNote: "Utapokea PDF kwenye WhatsApp mara baada ya malipo kuthibitishwa",
     ipo: "Ipo", haijapakiwa: "Haijapakiwa"
@@ -71,7 +98,7 @@ const translations = {
     chaguaKidato: "Choose class you need:",
     chaguaTopic: "Choose topic you need:",
     muhtasari: "Payment Summary", empty: "No topic selected yet.", jumla: "Total:",
-    chaguaMtandao: "Choose Network", simuMalipo: "Payment Phone Number",
+    chaguaMtandao: "Choose Payment Network", simuMalipo: "Payment Phone Number",
     whatsappLabel: "WhatsApp Number to Receive PDF",
     whatsappNote: "You will receive PDF on WhatsApp after payment is confirmed",
     ipo: "Available", haijapakiwa: "Not Uploaded"
@@ -88,7 +115,7 @@ function NotesContent() {
   const [selected, setSelected] = useState<string[]>([])
   const [phone, setPhone] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
-  const method = "Vodacom/Halotel/Airtel/Yas"
+  const [method, setMethod] = useState<NetworkId>("Vodacom")
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
   const [availability, setAvailability] = useState<Record<string, boolean>>({})
   const [loadingTopics, setLoadingTopics] = useState(true)
@@ -136,10 +163,15 @@ function NotesContent() {
   }
 
   const total = useMemo(() => selected.length * 1000, [selected])
+  const phoneMismatch = phone.length >= 4 &&!isPhoneMatchesNetwork(phone, method)
 
   const handleLipa = async () => {
     if (!phone ||!whatsapp || selected.length === 0) {
       alert("Jaza namba na chagua topic")
+      return
+    }
+    if (!isPhoneMatchesNetwork(phone, method)) {
+      alert(`Namba ${phone} sio ya ${method}. Namba za ${method} ni ${NETWORKS.find(n=>n.id===method)?.prefixes.join(", ")}. Tafadhali badilisha namba au chagua mtandao sahihi.`)
       return
     }
     const validation = validatePaymentForm(phone, whatsapp, method)
@@ -179,7 +211,6 @@ function NotesContent() {
         let category = 'NOTES'
         let form_name = ''
         let topic_name = ''
-
         if (fullKey.includes('Mazoezi')) {
           category = 'MAZOEZI'
           form_name = parts[2]
@@ -193,7 +224,6 @@ function NotesContent() {
           form_name = parts[1]
           topic_name = parts[2]
         }
-
         const catalog = catalogMap.get(fullKey)
         return {
           order_id: order.id,
@@ -355,29 +385,44 @@ function NotesContent() {
           <div className="border-t mt-4 pt-4 flex justify-between font-black text-sm">
             <span>{tr.jumla}</span><span className="text-[#1d4ed8]">TZS {total.toLocaleString()}</span>
           </div>
+
           <div className="mt-5">
             <p className="text-xs font-bold mb-2">{tr.chaguaMtandao}</p>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 bg-blue-50 border-[#1d4ed8]">
-                <span className="w-2 h-2 rounded-full bg-blue-600"></span>Vodacom/Halotel/Airtel/Yas
-              </div>
+            <div className="grid grid-cols-2 gap-2">
+              {NETWORKS.map(n => (
+                <button
+                  key={n.id}
+                  onClick={() => setMethod(n.id)}
+                  className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${method === n.id? 'border-[#1d4ed8] bg-blue-50 shadow-sm' : 'bg-white hover:bg-gray-50'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${n.color}`}></span>
+                  <span className="flex flex-col items-start leading-none">
+                    <span>{n.label}</span>
+                    <span className="text- font-normal text-gray-500">{n.sub}</span>
+                  </span>
+                </button>
+              ))}
             </div>
+            <p className="text- text-gray-500 mt-2">Umelipia kwa: <span className="font-bold text-[#1d4ed8]">{method}</span> - Namba lazima ianze na {NETWORKS.find(x=>x.id===method)?.prefixes.join("/")}</p>
           </div>
+
           <div className="mt-4 space-y-3">
             <div>
-              <label className="text-xs font-bold">{tr.simuMalipo}</label>
-              <div className="flex items-center border rounded-xl px-3 py-2.5 mt-1 gap-2">
-                <Smartphone size={16} className="text-gray-400" /><input value={phone} onChange={e => setPhone(e.target.value)} placeholder="07xx xxx xxx" className="w-full outline-none text-sm" />
+              <label className="text-xs font-bold">{tr.simuMalipo} <span className="text- font-normal text-gray-500">({method})</span></label>
+              <div className={`flex items-center border rounded-xl px-3 py-2.5 mt-1 gap-2 ${phoneMismatch? 'border-red-500 bg-red-50' : ''}`}>
+                <Smartphone size={16} className={`${phoneMismatch? 'text-red-500' : 'text-gray-400'}`} />
+                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="07xx xxx xxx" className="w-full outline-none text-sm bg-transparent" />
               </div>
+              {phoneMismatch && <p className="text- text-red-600 mt-1">Namba {phone} sio ya {method}. Badilisha mtandao au namba.</p>}
             </div>
             <div>
               <label className="text-xs font-bold">{tr.whatsappLabel}</label>
               <div className="flex items-center border rounded-xl px-3 py-2.5 mt-1 gap-2">
-                <MessageCircle size={16} className="text-green-500" /><input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="07xx xxx xxx" className="w-full outline-none text-sm" />
+                <MessageCircle size={16} className="text-green-500" /><input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="07xx xxx xxx (mtandao wowote)" className="w-full outline-none text-sm" />
               </div>
             </div>
           </div>
-          <button onClick={handleLipa} disabled={selected.length === 0 ||!phone ||!whatsapp || submitting} className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm cursor-pointer transition-all duration-200 ease-out hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          <button onClick={handleLipa} disabled={selected.length === 0 ||!phone ||!whatsapp || submitting || phoneMismatch} className="w-full mt-5 bg-[#1d4ed8] text-white py-3 rounded-xl font-bold text-sm cursor-pointer transition-all duration-200 ease-out hover:bg-[#1e40af] hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2">
             {submitting? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>Inatuma...</>) : (`Lipa TZS ${total.toLocaleString()} kwa ${method}`)}
           </button>
           <p className="text-xs text-center text-gray-500 mt-3">{tr.whatsappNote}</p>
