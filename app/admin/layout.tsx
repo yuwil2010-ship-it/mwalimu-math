@@ -92,6 +92,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = useCallback(async () => { localStorage.clear(); await supabase.auth.signOut(); router.replace("/admin/login") }, [router])
 
+  if (pathname === "/admin/login") {
+    return <>{children}</>
+  }
+
   return (
     <LangContext.Provider value={lang}>
       <div className="h-screen flex bg-[#f6f7fb] overflow-hidden">
