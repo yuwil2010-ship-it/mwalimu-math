@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Search, ChevronRight } from "lucide-react"
+import { Search, ChevronRight, ChevronDown } from "lucide-react"
 
 type TopicRow = {
   id: number
@@ -18,6 +18,15 @@ type TopicRow = {
 const FORMS = ["Form I", "Form II", "Form III", "Form IV", "Form V", "Form VI", "Mazoezi", "Bonus"]
 const ALLOWED_ADMINS = ["yuwil2010@gmail.com"]
 
+const materialTypes = [
+  "Scheme of works",
+  "Lesson plan",
+  "Books",
+  "Timetable",
+  "Teaching aids",
+  "Pdfs",
+]
+
 export default function PdfsPage() {
   const router = useRouter()
   const [authed, setAuthed] = useState(false)
@@ -26,6 +35,8 @@ export default function PdfsPage() {
   const [filterForm, setFilterForm] = useState("Form I")
   const [search, setSearch] = useState("")
   const [savingId, setSavingId] = useState<number | null>(null)
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false)
+  const [selectedType, setSelectedType] = useState<string | null>("Pdfs")
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -113,7 +124,8 @@ export default function PdfsPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
+      {/* PATH + SEARCH - kutoka material page */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
         <div className="flex items-center gap-1.5 text-sm text-gray-500">
           <span>Dashboard</span>
@@ -130,6 +142,35 @@ export default function PdfsPage() {
         </div>
       </div>
 
+      {/* DROPDOWN YA TYPE - bakiza hii tu */}
+      <div className="bg-white p-3 rounded-xl border border-gray-100">
+        <div className="relative inline-block">
+          <button onClick={()=> setShowTypeDropdown(!showTypeDropdown)} className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2 text-xs bg-white font-medium hover:bg-gray-50 min-w- justify-between">
+            {selectedType? selectedType : "Select type of material"} <ChevronDown size={14} className={`${showTypeDropdown?'rotate-180':''} transition`} />
+          </button>
+          {showTypeDropdown && (
+            <div className="absolute mt-2 w-60 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
+              {materialTypes.map(label=>(
+                <button
+                  key={label}
+                  onClick={()=> {
+                    setSelectedType(label)
+                    setShowTypeDropdown(false)
+                    if(label!== "Pdfs"){
+                      router.push(`/admin/academics/materials/${label.toLowerCase().replace(/ /g,'').includes('scheme')?'schemes':label.toLowerCase().replace(/ /g,'').includes('lesson')?'plans':label.toLowerCase()}`)
+                    }
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-xs hover:bg-[#eef2ff] hover:text-[#1d4ed8] ${selectedType===label?'bg-[#eef2ff] text-[#1d4ed8] font-bold':''}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* CONTENT YA PDFS - ime-fit horizontally, bila kuathiri sidebar/topnav */}
       <div className="bg-white rounded-xl border border-gray-100 p-3 space-y-3">
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-1.5">
           <button onClick={() => handleFilterChange("All")} className={`px-2 py-1.5 rounded-full text- font-bold border ${filterForm === "All"? "bg-[#1d4ed8] text-white border-[#1d4ed8]" : "bg-gray-50"}`}>All</button>
@@ -146,8 +187,8 @@ export default function PdfsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="hidden md:block overflow-auto">
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full">
+        <div className="hidden md:block overflow-x-auto w-full">
           <table className="w-full text-xs">
             <thead className="bg-gray-50 text- text-gray-500">
               <tr>
@@ -175,10 +216,10 @@ export default function PdfsPage() {
         </div>
 
         <div className="md:hidden space-y-2 p-2">
-          {loading? <div className="bg-white rounded-xl border p-6 text-center text-xs text-gray-400">Inapakia...</div>
-            : filteredTopics.length === 0? <div className="bg-white rounded-xl border p-6 text-center text-xs text-gray-400">Hakuna topic</div>
+          {loading? <div className="rounded-xl border p-6 text-center text-xs text-gray-400">Inapakia...</div>
+            : filteredTopics.length === 0? <div className="rounded-xl border p-6 text-center text-xs text-gray-400">Hakuna topic</div>
               : filteredTopics.map(row => (
-                <div key={row.id} className="bg-white rounded-xl border p-3">
+                <div key={row.id} className="rounded-xl border p-3">
                   <div className="flex justify-between items-start gap-2 mb-2">
                     <div className="flex-1 min-w-0"><div className="font-bold text- truncate">{row.full_key}</div><div className="text- text-gray-400 mt-0.5">{row.category} • {row.form_name}</div></div>
                     <span className={`text- px-2 py-0.5 rounded-full font-bold ${row.is_available? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{row.is_available? "Ipo" : "Haijapakiwa"}</span>
