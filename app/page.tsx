@@ -9,7 +9,6 @@ import {
 
 const LIGHT_BG = "from-[#e0f2fe] to-[#bae6fd]"
 
-// MAKADIRIO YA CS - Badilisha na data halisi kutoka Supabase /notes page
 const kitabuData = [
   { form: "Form I", icon: BookOpen, mathTopics: 12, csTopics: 8, bg: LIGHT_BG, symbols: ["π", "½", "△", "∑"] },
   { form: "Form II", icon: Calculator, mathTopics: 11, csTopics: 7, bg: LIGHT_BG, symbols: ["x²", "√", "θ", "a²+b²"] },
@@ -28,7 +27,7 @@ const t = {
     hero2: "Mathematics na Computer",
     heroDesc: "Pata nukuu kamili za somo la Computer na Mathematics Form I-VI kulingana na syllabus ya Tanzania. Pakua PDF tayari kwa kuchapisha na kujifunza ukiwa mahali popote TANZANIA",
     pakuaLong: "Pakua Sasa - TZS 1,000/topic", ofa: "Ofa ya Leo",
-    pdf1: "PDF ya kuchapisha", pdf2: "Chagua topic unayohitaji tu", pdf3: "Pokea 【entity-WhatsApp¦canonical_name=WhatsApp】 papo hapo",
+    pdf1: "PDF ya kuchapisha", pdf2: "Chagua topic unayohitaji tu", pdf3: "Pokea PDF yako papo hapo",
     chagua: "Chagua Topic Sasa",
     nukuuTitle: "Nukuu zinazopatikana",
     nukuuDesc: "Karibu, bonyeza link (view notes) iliyopo chini ya kidato unachohitaji ili kuchagua somo na topic unayotaka kutoka kwenye kidato husika",
@@ -48,7 +47,7 @@ const t = {
     hero1: "Help your student excel in",
     hero2: "Mathematics and Computer",
     heroDesc: "Get complete notes for Computer and Mathematics Form I-VI based on Tanzania syllabus. Download ready-to-print PDF and learn from anywhere in TANZANIA.",
-    pakuaLong: "Download Now - TZS 1,000/topic", ofa: "Today's Offer", pdf1: "Printable PDF", pdf2: "Choose only the topic you need", pdf3: "Receive via WhatsApp instantly",
+    pakuaLong: "Download Now - TZS 1,000/topic", ofa: "Today's Offer", pdf1: "Printable PDF", pdf2: "Choose only the topic you need", pdf3: "Receive your PDF instantly",
     chagua: "Choose Topic Now",
     nukuuTitle: "Available Notes",
     nukuuDesc: "Welcome, click the (view notes) link under the class you need to choose subject and topic you want from that class",
@@ -176,8 +175,8 @@ export default function HomePage() {
             <h4 className="font-bold mt-3 text-sm">{tr.s1t}</h4>
             <p className="text-xs text-gray-600 mt-1.5">{tr.s1d}</p>
             <div className="grid grid-cols-2 gap-2 mt-4">
-              {["M-Pesa", "Mixx by Yas", "Airtel Money", "HaloPesa"].map(m => (
-                <div key={m} className="h-11 flex items-center justify-center text-xs font-bold border rounded-lg bg-gray-50 text-gray-700">
+              {["Vodacom / Yas", "Airtel"].map(m => (
+                <div key={m} className="h-11 flex items-center justify-center text- font-bold border rounded-lg bg-gray-50 text-gray-700 px-1 text-center leading-tight whitespace-nowrap">
                   {m}
                 </div>
               ))}
@@ -229,7 +228,7 @@ export default function HomePage() {
             <ul className="mt-2 text-xs space-y-1.5 text-blue-100">
               <li><a href="https://www.necta.go.tz" target="_blank" className="hover:text-white">Necta</a></li>
               <li><a href="https://www.moe.go.tz" target="_blank" className="hover:text-white">Wizara ya Elimu</a></li>
-              <li><Link href="#" className="hover:text-white font-bold">LY Tech</Link></li>
+              <li><button onClick={scrollToTop} className="hover:text-white font-bold text-left">LY Tech</button></li>
             </ul>
           </div>
           <div>
