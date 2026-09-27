@@ -174,12 +174,10 @@ export default function HomePage() {
             <div className="w-10 h-10 bg-[#1d4ed8] text-white rounded-full flex items-center justify-center mx-auto font-black text-sm">1</div>
             <h4 className="font-bold mt-3 text-sm">{tr.s1t}</h4>
             <p className="text-xs text-gray-600 mt-1.5">{tr.s1d}</p>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {["Vodacom / Yas", "Airtel"].map(m => (
-                <div key={m} className="h-11 flex items-center justify-center text- font-bold border rounded-lg bg-gray-50 text-gray-700 px-1 text-center leading-tight whitespace-nowrap">
-                  {m}
-                </div>
-              ))}
+            <div className="mt-4">
+              <div className="h-11 flex items-center justify-center text- sm:text- font-bold border rounded-lg bg-gray-50 text-gray-700 px-2 text-center leading-tight whitespace-nowrap">
+                Vodacom/Halotel/Airtel/Yas
+              </div>
             </div>
           </div>
           <div className="border rounded-xl p-5 text-center">
