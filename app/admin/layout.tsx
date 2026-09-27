@@ -7,6 +7,7 @@ import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, L
 type SubItem = { label: string; href: string }
 type MenuItem = { name: string; icon: LucideIcon; href: string; sub: SubItem[] }
 type Crumb = { href: string; label: string }
+type Router = { push: (href: string) => void; replace: (href: string) => void }
 
 const menu: MenuItem[] = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/admin", sub: [] },
@@ -28,24 +29,13 @@ const menu: MenuItem[] = [
   { name: "Settings", icon: Settings, href: "/admin/settings", sub: [] },
 ]
 
-interface SidebarProps {
-  pathname: string
-  openDropdown: string | null
-  setOpenDropdown: (v: string | null) => void
-  setMobileOpen: (v: boolean) => void
-  handleLogout: () => void
-  onClose?: () => void
-  router: ReturnType<typeof useRouter>
-}
-
-function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen, handleLogout, onClose, router }: SidebarProps) {
+function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen, handleLogout, onClose, router }: { pathname: string; openDropdown: string | null; setOpenDropdown: (v: string | null) => void; setMobileOpen: (v: boolean) => void; handleLogout: () => void; onClose?: () => void; router: Router }) {
   const autoOpen = useMemo(() => menu.find(m => pathname.startsWith(m.href) && m.href!== "/admin")?.name?? null, [pathname])
   const isMainOpen = (name: string) => {
     if (openDropdown === "CLOSED") return false
     if (openDropdown!== null) return openDropdown === name
     return autoOpen === name
   }
-
   return (
     <>
       <div className="px-5 py-5 flex items-center justify-between font-black text-base bg-[#1d4ed8] text-white">
@@ -58,32 +48,13 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
           const open = isMainOpen(item.name)
           return (
             <div key={item.name}>
-              <button
-                onClick={()=> {
-                  if(item.sub.length>0){
-                    if(open){ setOpenDropdown("CLOSED") } else { setOpenDropdown(item.name) }
-                  }else{
-                    setOpenDropdown(null)
-                    router.push(item.href)
-                    setMobileOpen(false)
-                  }
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}
-              >
+              <button onClick={()=> { if(item.sub.length>0){ if(open){ setOpenDropdown("CLOSED") } else { setOpenDropdown(item.name) } }else{ setOpenDropdown(null); router.push(item.href); setMobileOpen(false) } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}>
                 <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
                 {item.sub.length>0 && <ChevronDown size={14} className={`${open? "rotate-180" : ""} transition`} />}
               </button>
               {item.sub.length>0 && open && (
                 <div className="mt-1 ml-3 pl-3 border-l space-y-1">
-                  {item.sub.map((sub) => (
-                    <button
-                      key={sub.href}
-                      onClick={()=> { router.push(sub.href); setMobileOpen(false) }}
-                      className={`w-full text-left text-xs px-3 py-2 rounded-lg ${pathname === sub.href? "bg-[#eef2ff] text-[#1d4ed8] font-bold" : "text-gray-500 hover:text-[#1d4ed8]"}`}
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
+                  {item.sub.map((sub) => <button key={sub.href} onClick={()=> { router.push(sub.href); setMobileOpen(false) }} className={`w-full text-left text-xs px-3 py-2 rounded-lg ${pathname === sub.href? "bg-[#eef2ff] text-[#1d4ed8] font-bold" : "text-gray-500 hover:text-[#1d4ed8]"}`}>{sub.label}</button>)}
                 </div>
               )}
             </div>
@@ -116,9 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return unique
   },[pathname])
 
-  const handleLogout = useCallback(async () => {
-    localStorage.clear(); await supabase.auth.signOut(); router.replace("/admin/login")
-  }, [router])
+  const handleLogout = useCallback(async () => { localStorage.clear(); await supabase.auth.signOut(); router.replace("/admin/login") }, [router])
 
   return (
     <div className="h-screen flex bg-[#f6f7fb] overflow-hidden">
@@ -127,9 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-[#1d4ed8] text-white px-6 py-4 flex items-center gap-3">
           <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button>
-          <div className="flex items-center gap-1.5 text-sm font-bold">
-            {breadcrumbs.map((c,i)=>(<span key={c.href} className="flex items-center gap-1.5">{i>0 && <ChevronRight size={14} className="opacity-60"/>}<span className={`${i===breadcrumbs.length-1? "text-white" : "text-white/60"}`}>{c.label}</span></span>))}
-          </div>
+          <div className="flex items-center gap-1.5 text-sm font-bold">{breadcrumbs.map((c,i)=>(<span key={c.href} className="flex items-center gap-1.5">{i>0 && <ChevronRight size={14} className="opacity-60"/>}<span className={`${i===breadcrumbs.length-1? "text-white" : "text-white/60"}`}>{c.label}</span></span>))}</div>
         </header>
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
       </main>
