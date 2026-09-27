@@ -2,7 +2,7 @@
 import { useState, useEffect, createContext, useMemo, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, Globe, ChevronDown, Menu, X, LucideIcon } from "lucide-react"
+import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, Globe, ChevronDown, Menu, X, LucideIcon, ChevronRight } from "lucide-react"
 
 export const LangContext = createContext<'sw' | 'en'>('sw')
 const INACTIVITY_LIMIT = 5 * 60 * 1000
@@ -21,9 +21,9 @@ const menu: MenuItem[] = [
   { name: "Academics", icon: GraduationCap, href: "/admin/academics", sub: [
     { label: "Manage Classes", href: "/admin/academics/classes" },
     { label: "Manage Materials", href: "/admin/academics/materials" },
-    { label: "Manage Timetable", href: "/admin/academics/timetable" },
+    { label: "Manage Periods", href: "/admin/academics/periods" },
     { label: "Manage Attendance", href: "/admin/academics/attendance" },
-    { label: "Manage Assessment", href: "/admin/academics/assessment" },
+    { label: "Manage Assessments", href: "/admin/academics/assessments" },
   ]},
   { name: "Reports", icon: BarChart3, href: "/admin/reports", sub: [
     { label: "Manage reports", href: "/admin/reports/reports" },
@@ -58,7 +58,7 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
   }
   return (
     <>
-      <div className="px-5 py-5 flex items-center justify-between font-black text- bg-[#1d4ed8] text-white">
+      <div className="px-5 py-5 flex items-center justify-between font-black text-base bg-[#1d4ed8] text-white">
         <div className="flex items-center gap-2"><div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center"><Calculator size={18} className="text-[#1d4ed8]" /></div>Mwalimu Math</div>
         {onClose && <button onClick={onClose}><X size={18}/></button>}
       </div>
@@ -68,12 +68,21 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
           const open = isMainOpen(item.name)
           return (
             <div key={item.name}>
-              <button onClick={()=> { if(item.sub.length>0){ setOpenDropdown(open? "CLOSED" : item.name) }else{ router.push(item.href); setMobileOpen(false) } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}>
-                <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>{item.sub.length>0 && <ChevronDown size={14} className={`${open? "rotate-180" : ""}`} />}
+              <button onClick={()=> {
+                if(item.sub.length>0){
+                  if(open){ setOpenDropdown("CLOSED") } else { setOpenDropdown(item.name) }
+                  router.push(item.href);
+                  setMobileOpen(false)
+                }else{
+                  router.push(item.href);
+                  setMobileOpen(false)
+                }
+              }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}>
+                <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>{item.sub.length>0 && <ChevronDown size={14} className={`${open? "rotate-180" : ""} transition`} />}
               </button>
               {item.sub.length>0 && open && (
                 <div className="mt-1 ml-3 pl-3 border-l space-y-1">
-                  {item.sub.map((sub) => <button key={sub.href} onClick={()=> {router.push(sub.href); setMobileOpen(false)}} className={`w-full text-left text- px-3 py-2 rounded-lg ${pathname === sub.href? "bg-[#eef2ff] text-[#1d4ed8]" : "text-gray-500"}`}>{sub.label}</button>)}
+                  {item.sub.map((sub) => <button key={sub.href} onClick={()=> {router.push(sub.href); setMobileOpen(false)}} className={`w-full text-left text-xs px-3 py-2 rounded-lg ${pathname === sub.href? "bg-[#eef2ff] text-[#1d4ed8] font-bold" : "text-gray-500"}`}>{sub.label}</button>)}
                 </div>
               )}
             </div>
@@ -92,6 +101,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  // FIX 1: auto-close dropdown ukihama page - comment iko JUU ya setState
+  useEffect(()=>{
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  setOpenDropdown(null)
+},[pathname])
+
+  const breadcrumbs = useMemo(()=>{
+    const allLinks: {href:string,label:string}[] = []
+    menu.forEach(m=>{
+      allLinks.push({href:m.href, label: m.name === "Dashboard"? "Dashboard" : m.name})
+      m.sub.forEach(s=> allLinks.push({href:s.href, label:s.label}))
+    })
+    allLinks.sort((a,b)=> a.href.length - b.href.length)
+    const crumbs = allLinks.filter(l=> pathname === l.href || pathname.startsWith(l.href + "/") || (l.href==="/admin" && pathname==="/admin"))
+    const unique = crumbs.filter((v,i,a)=> a.findIndex(t=>t.href===v.href)===i)
+    unique.sort((a,b)=> a.href.length - b.href.length)
+    if(unique.length===0) return [{href:"/admin", label:"Dashboard"}]
+    return unique
+  },[pathname])
 
   const handleLogout = useCallback(async () => {
     localStorage.removeItem("mwalimu_admin_authed")
@@ -129,7 +158,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="w-60 bg-white border-r hidden md:flex flex-col"><SidebarContent pathname={pathname} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileOpen={setMobileOpen} handleLogout={handleLogout} router={router} /></aside>
         {mobileOpen && <div className="fixed inset-0 z-50 md:hidden flex"><div className="absolute inset-0 bg-black/50" onClick={()=>setMobileOpen(false)}></div><aside className="relative w-72 bg-white h-full flex flex-col"><SidebarContent pathname={pathname} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileOpen={setMobileOpen} handleLogout={handleLogout} onClose={()=>setMobileOpen(false)} router={router} /></aside></div>}
         <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-[#1d4ed8] text-white px-6 py-4 flex justify-between"><div className="flex items-center gap-3"><button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button><h1 className="font-bold capitalize">{pathname.split("/").pop() || "Dashboard"}</h1></div><button onClick={()=>setLang(lang==='sw'?'en':'sw')} className="border border-white/30 bg-white/10 rounded-full px-3 py-1.5 text-xs font-bold flex gap-1 items-center"><Globe size={14}/> {lang.toUpperCase()}</button></header>
+          <header className="bg-[#1d4ed8] text-white px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button>
+              <div className="flex items-center gap-1.5 text-sm font-bold">
+                {breadcrumbs.map((c,i)=>(
+                  <span key={c.href} className="flex items-center gap-1.5">
+                    {i>0 && <ChevronRight size={14} className="opacity-60"/>}
+                    <span className={`${i===breadcrumbs.length-1? "text-white" : "text-white/60"}`}>{c.label}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button onClick={()=>setLang(lang==='sw'?'en':'sw')} className="border border-white/30 bg-white/10 rounded-full px-3 py-1.5 text-xs font-bold flex gap-1 items-center"><Globe size={14}/> {lang.toUpperCase()}</button>
+          </header>
           <div className="flex-1 overflow-y-auto p-6">{children}</div>
         </main>
       </div>
