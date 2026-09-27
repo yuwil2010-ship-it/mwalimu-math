@@ -224,11 +224,11 @@ export default function HomePage() {
             <p className="text-xs mt-2 text-blue-100 leading-relaxed">{tr.footerDesc}</p>
           </div>
           <div>
-            <h4 className="font-bold text-white text-sm">Links</h4>
+            <h4 className="font-bold text-white text-sm">Important Links</h4>
             <ul className="mt-2 text-xs space-y-1.5 text-blue-100">
               <li><a href="https://www.necta.go.tz" target="_blank" className="hover:text-white">Necta</a></li>
               <li><a href="https://www.moe.go.tz" target="_blank" className="hover:text-white">Wizara ya Elimu</a></li>
-              <li><button onClick={scrollToTop} className="hover:text-white font-bold text-left">LY Tech</button></li>
+              <li><button onClick={scrollToTop} className="hover:text-white font-bold text-left cursor-pointer hover:underline">LY Tech</button></li>
             </ul>
           </div>
           <div>
