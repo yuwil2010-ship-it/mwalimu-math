@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback, createContext } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, ChevronDown, Menu, X, ChevronRight, type LucideIcon } from "lucide-react"
+import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, ChevronDown, Menu, X, ChevronRight, Globe, type LucideIcon } from "lucide-react"
 
 type SubItem = { label: string; href: string }
 type MenuItem = { name: string; icon: LucideIcon; href: string; sub: SubItem[] }
@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [lang] = useState<'sw' | 'en'>('sw')
+  const [lang, setLang] = useState<'sw' | 'en'>('sw')
 
   useEffect(()=>{
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -102,9 +102,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="w-60 bg-white border-r hidden md:flex flex-col"><SidebarContent pathname={pathname} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileOpen={setMobileOpen} handleLogout={handleLogout} router={router} /></aside>
         {mobileOpen && <div className="fixed inset-0 z-50 md:hidden flex"><div className="absolute inset-0 bg-black/50" onClick={()=>setMobileOpen(false)}></div><aside className="relative w-72 bg-white h-full flex flex-col"><SidebarContent pathname={pathname} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileOpen={setMobileOpen} handleLogout={handleLogout} onClose={()=>setMobileOpen(false)} router={router} /></aside></div>}
         <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-[#1d4ed8] text-white px-6 py-4 flex items-center gap-3">
-            <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button>
-            <div className="flex items-center gap-1.5 text-sm font-bold">{breadcrumbs.map((c,i)=>(<span key={c.href} className="flex items-center gap-1.5">{i>0 && <ChevronRight size={14} className="opacity-60"/>}<span className={`${i===breadcrumbs.length-1? "text-white" : "text-white/60"}`}>{c.label}</span></span>))}</div>
+          <header className="bg-[#1d4ed8] text-white px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button>
+              <div className="flex items-center gap-1.5 text-sm font-bold">
+                {breadcrumbs.map((c,i)=>(<span key={c.href} className="flex items-center gap-1.5">{i>0 && <ChevronRight size={14} className="opacity-60"/>}<span className={`${i===breadcrumbs.length-1? "text-white" : "text-white/60"}`}>{c.label}</span></span>))}
+              </div>
+            </div>
+            <button onClick={()=> setLang(p=> p==='sw'? 'en' : 'sw')} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold">
+              <Globe size={14}/> {lang==='sw'? 'SW' : 'EN'}
+            </button>
           </header>
           <div className="flex-1 overflow-y-auto p-6">{children}</div>
         </main>
