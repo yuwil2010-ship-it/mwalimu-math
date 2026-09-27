@@ -7,43 +7,61 @@ import {
   Calculator, Globe
 } from "lucide-react"
 
-// RANGI MOJA TU - LIGHT BLUE KWA KADI ZOTE
 const LIGHT_BG = "from-[#e0f2fe] to-[#bae6fd]"
 
+// MAKADIRIO YA CS - Badilisha na data halisi kutoka Supabase /notes page
 const kitabuData = [
-  { form: "Form I", icon: BookOpen, topics: 12, bg: LIGHT_BG, symbols: ["π", "½", "△", "∑"] },
-  { form: "Form II", icon: Calculator, topics: 11, bg: LIGHT_BG, symbols: ["x²", "√", "θ", "a²+b²"] },
-  { form: "Form III", icon: FileText, topics: 8, bg: LIGHT_BG, symbols: ["f(x)", "○", "≈", "∠"] },
-  { form: "Form IV", icon: Award, topics: 8, bg: LIGHT_BG, symbols: ["→", "P(A)", "[ ]", "∆"] },
-  { form: "Form V", icon: GraduationCap, topics: 9, bg: LIGHT_BG, symbols: ["d/dx", "∫", "lim", "∧∨"] },
-  { form: "Form VI", icon: Sparkles, topics: 8, bg: LIGHT_BG, symbols: ["i", "σ", "∑", "∂"] },
-  { form: "Mazoezi", icon: CheckCircle2, topics: 56, bg: LIGHT_BG, symbols: ["✓", "?", "≠", "∞"] },
-  { form: "Bonus", icon: BadgeCheck, topics: 15, bg: LIGHT_BG, symbols: ["2025", "2024", "2023", "NECTA"] },
+  { form: "Form I", icon: BookOpen, mathTopics: 12, csTopics: 8, bg: LIGHT_BG, symbols: ["π", "½", "△", "∑"] },
+  { form: "Form II", icon: Calculator, mathTopics: 11, csTopics: 7, bg: LIGHT_BG, symbols: ["x²", "√", "θ", "a²+b²"] },
+  { form: "Form III", icon: FileText, mathTopics: 8, csTopics: 9, bg: LIGHT_BG, symbols: ["f(x)", "○", "≈", "∠"] },
+  { form: "Form IV", icon: Award, mathTopics: 8, csTopics: 10, bg: LIGHT_BG, symbols: ["→", "P(A)", "[ ]", "∆"] },
+  { form: "Form V", icon: GraduationCap, mathTopics: 9, csTopics: 11, bg: LIGHT_BG, symbols: ["d/dx", "∫", "lim", "∧∨"] },
+  { form: "Form VI", icon: Sparkles, mathTopics: 8, csTopics: 12, bg: LIGHT_BG, symbols: ["i", "σ", "∑", "∂"] },
+  { form: "Mazoezi", icon: CheckCircle2, mathTopics: 56, csTopics: 25, bg: LIGHT_BG, symbols: ["✓", "?", "≠", "∞"] },
+  { form: "Bonus", icon: BadgeCheck, mathTopics: 15, csTopics: 10, bg: LIGHT_BG, symbols: ["2025", "2024", "2023", "NECTA"] },
 ]
 
 const t = {
   sw: {
     badge: "Wanafunzi 100+ wameipata",
-    hero1: "Msaidie Mwanafunzi Wako", hero2: "Kufaulu Mathematics",
-    heroDesc: "Nukuu kamili za Mathematics Form I-VI kulingana na syllabus ya Tanzania. PDF tayari kuchapisha na kufundishia nyumbani.",
+    hero1: "Msaidie mwanafunzi kufaulu",
+    hero2: "Mathematics na Computer",
+    heroDesc: "Pata nukuu kamili za somo la Computer na Mathematics Form I-VI kulingana na syllabus ya Tanzania. Pakua PDF tayari kwa kuchapisha na kujifunza ukiwa mahali popote TANZANIA",
     pakuaLong: "Pakua Sasa - TZS 1,000/topic", ofa: "Ofa ya Leo",
-    pdf1: "PDF ya kuchapisha", pdf2: "Chagua topic unayohitaji tu", pdf3: "Pokea WhatsApp papo hapo",
-    chagua: "Chagua Topic Sasa", nukuuTitle: "Nukuu zinazopatikana", nukuuDesc: "Kila kidato kimegawanywa kwa topic - Jumla 71 topics",
-    view: "view notes →", jinsi: "Jinsi Inavyofanya Kazi",
-    s1t: "Lipia kirahisi zaidi", s1d: "Chagua topic, kisha lipia kwa mitandao ya simu",
-    s2t: "Pokea PDF WhatsApp", s2d: "PDF inatumwa moja kwa moja kwenye WhatApp yako ndani ya dakika chache",
-    s3t: "Anza Kujisomea na kufanya mazoezi", s3d: "Chapisha au soma kwenye simu uanze mazoezi ya kukuwezesha kufaulu Mathematics",
+    pdf1: "PDF ya kuchapisha", pdf2: "Chagua topic unayohitaji tu", pdf3: "Pokea 【entity-WhatsApp¦canonical_name=WhatsApp】 papo hapo",
+    chagua: "Chagua Topic Sasa",
+    nukuuTitle: "Nukuu zinazopatikana",
+    nukuuDesc: "Karibu, bonyeza link (view notes) iliyopo chini ya kidato unachohitaji ili kuchagua somo na topic unayotaka kutoka kwenye kidato husika",
+    view: "view notes →",
+    jinsi: "Jinsi ya kuzipata notes",
+    s1t: "Lipia kirahisi zaidi",
+    s1d: "Chagua somo na mada unayohitaji kisha na mtandao unaotaka kutumia kufanya malipo kati ya hii iliyopo;",
+    s2t: "Pokea PDF WhatsApp",
+    s2d: "PDF itatumwa moja kwa moja kwenye WhatApp yako ndani ya mda mchache baada ya malipo uliyoyafanya kuthibitishwa",
+    s3t: "Anza Kujisomea na kufanya mazoezi",
+    s3d: "Chapisha au soma kwenye simu uanze mazoezi ya kukuwezesha kufaulu mitihani yako",
     tayariTitle: "Uko Tayari Kuanza?", tayariDesc: "Chagua topic unayohitaji leo kwa TZS 1,000 tu", pakua: "Pakua Sasa",
+    footerDesc: "Tunasaidia wanafunzi wa Tanzania kufaulu Mathematics na Computer kwa nukuu rahisi na za kueleweka zinazofuata mtaala wa elimu kutoka Baraza la mitihani la Taifa",
   },
   en: {
-    badge: "100+ Students Got It", hero1: "Help Your Student", hero2: "Excel in Mathematics",
-    heroDesc: "Complete Mathematics Notes Form I-VI based on Tanzania syllabus. Ready to print PDF for home learning.",
+    badge: "100+ Students Got It",
+    hero1: "Help your student excel in",
+    hero2: "Mathematics and Computer",
+    heroDesc: "Get complete notes for Computer and Mathematics Form I-VI based on Tanzania syllabus. Download ready-to-print PDF and learn from anywhere in TANZANIA.",
     pakuaLong: "Download Now - TZS 1,000/topic", ofa: "Today's Offer", pdf1: "Printable PDF", pdf2: "Choose only the topic you need", pdf3: "Receive via WhatsApp instantly",
-    chagua: "Choose Topic Now", nukuuTitle: "Available Notes", nukuuDesc: "Each class is divided by topic - Total 71 topics",
-    view: "view notes →", jinsi: "How It Works", s1t: "Easy Payment", s1d: "Choose topic, then pay via mobile networks",
-    s2t: "Receive PDF on WhatsApp", s2d: "PDF is sent directly to your WhatsApp within a few minutes",
-    s3t: "Start Reading & Practicing", s3d: "Print or read on phone and start practicing to pass Mathematics",
+    chagua: "Choose Topic Now",
+    nukuuTitle: "Available Notes",
+    nukuuDesc: "Welcome, click the (view notes) link under the class you need to choose subject and topic you want from that class",
+    view: "view notes →",
+    jinsi: "How to get the notes",
+    s1t: "Easy Payment",
+    s1d: "Choose the subject and topic you need then the network you want to use for payment among these available;",
+    s2t: "Receive PDF on WhatsApp",
+    s2d: "PDF will be sent directly to your WhatsApp within a short time after your payment is confirmed",
+    s3t: "Start Reading & Practicing",
+    s3d: "Print or read on your phone and start practicing to pass your exams",
     tayariTitle: "Ready to Start?", tayariDesc: "Choose the topic you need today for TZS 1,000 only", pakua: "Download Now",
+    footerDesc: "We help Tanzanian students excel in Mathematics and Computer with simple notes following the National Examinations Council syllabus",
   }
 }
 
@@ -80,7 +98,7 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
             {tr.hero1} <span className="text-[#1d4ed8]">{tr.hero2}</span>
           </h1>
-          <p className="mt-3 text-gray-600 text-sm">{tr.heroDesc}</p>
+          <p className="mt-3 text-gray-600 text-sm leading-relaxed">{tr.heroDesc}</p>
           <div className="mt-5 flex gap-3">
             <Link href="/notes" className="bg-[#1d4ed8] text-white px-7 py-3 rounded-full font-bold text-sm">{tr.pakuaLong}</Link>
           </div>
@@ -102,50 +120,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FRONT PAGE - LIGHT BLUE ZOTE + FORMULA ZINAONEKANA */}
       <section id="ndani" className="bg-gray-50 py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-extrabold text-center">{tr.nukuuTitle}</h2>
-          <p className="text-center text-gray-600 mt-1 text-sm">{tr.nukuuDesc}</p>
+          <p className="text-center text-gray-600 mt-2 text-sm max-w-2xl mx-auto">{tr.nukuuDesc}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            {kitabuData.map((item) => (
-              <div key={item.form} className="bg-white rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl transition group flex flex-col">
-                <div className={`h-36 bg-gradient-to-br ${item.bg} relative flex items-center justify-center overflow-hidden`}>
-                  <div className="absolute inset-0 opacity-[0.45]">
-                    <div className="absolute top-6 left-4 text-blue-900 text-3xl font-black rotate-12">{item.symbols[0]}</div>
-                    <div className="absolute top-10 right-6 text-blue-800 text-2xl font-bold -rotate-12">{item.symbols[1]}</div>
-                    <div className="absolute bottom-10 left-6 text-blue-800/80 text-xl font-bold rotate-6">{item.symbols[2]}</div>
-                    <div className="absolute bottom-6 right-4 text-blue-700/80 text-base font-bold -rotate-6">{item.symbols[3]}</div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-900 text-7xl font-black opacity-[0.12]">∑</div>
-                  </div>
-                  <div className="absolute top-3 left-3 z-20">
-                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md border border-blue-100">
-                      <item.icon size={18} className="text-[#1d4ed8]"/>
+            {kitabuData.map((item) => {
+              const total = item.mathTopics + item.csTopics;
+              return (
+                <div key={item.form} className="bg-white rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl transition group flex flex-col">
+                  <div className={`h-36 bg-gradient-to-br ${item.bg} relative flex items-center justify-center overflow-hidden`}>
+                    <div className="absolute inset-0 opacity-[0.45]">
+                      <div className="absolute top-6 left-4 text-blue-900 text-3xl font-black rotate-12">{item.symbols[0]}</div>
+                      <div className="absolute top-10 right-6 text-blue-800 text-2xl font-bold -rotate-12">{item.symbols[1]}</div>
+                      <div className="absolute bottom-10 left-6 text-blue-800/80 text-xl font-bold rotate-6">{item.symbols[2]}</div>
+                      <div className="absolute bottom-6 right-4 text-blue-700/80 text-base font-bold -rotate-6">{item.symbols[3]}</div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-900 text-7xl font-black opacity-[0.12]">∑</div>
+                    </div>
+                    <div className="absolute top-3 left-3 z-20">
+                      <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md border border-blue-100">
+                        <item.icon size={18} className="text-[#1d4ed8]"/>
+                      </div>
+                    </div>
+                    <div className="absolute top-3 right-3 z-20">
+                      <span className="text-xs bg-white/90 backdrop-blur text-blue-800 px-2.5 py-1 rounded-full font-bold border border-blue-200 shadow-sm">
+                        {item.mathTopics}/{item.csTopics} Topics
+                      </span>
+                    </div>
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center mt-2">
+                      <h4 className="font-black text-blue-900 text-xl tracking-tight">{item.form}</h4>
+                      <p className="text- font-bold text-blue-700 mt-1 uppercase tracking-widest">Math / Computer</p>
                     </div>
                   </div>
-                  <div className="absolute top-3 right-3 z-20">
-                    <span className="text- bg-white/80 backdrop-blur text-blue-800 px-2.5 py-1 rounded-full font-bold border border-blue-200 shadow-sm">{item.topics} Topics</span>
-                  </div>
-                  <div className="relative z-10 flex flex-col items-center justify-center text-center mt-2">
-                    <h4 className="font-black text-blue-900 text-xl tracking-tight">{item.form}</h4>
-                  </div>
-                </div>
-                <div className="p-3.5 bg-white">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#1d4ed8]"></div>
-                      <span className="text-xs font-bold text-gray-700">{item.topics} {lang === 'sw'? 'Mada' : 'Topics'}</span>
+                  <div className="p-3.5 bg-white">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-[#1d4ed8]"></div>
+                        <span className="text-xs font-bold text-gray-700">{total} {lang === 'sw'? 'Mada' : 'Topics'}</span>
+                      </div>
+                      <Link href={`/notes?form=${item.form}`} className="text-xs font-black text-[#1d4ed8] group-hover:underline">{tr.view}</Link>
                     </div>
-                    <Link href={`/notes?form=${item.form}`} className="text-xs font-black text-[#1d4ed8] group-hover:underline">{tr.view}</Link>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* PAYMENT - ALIGNED 2x2 GRID, SAME SIZE */}
       <section id="jinsi" className="py-10 px-4 max-w-7xl mx-auto">
         <h2 className="text-2xl font-extrabold text-center">{tr.jinsi}</h2>
         <div className="grid md:grid-cols-3 gap-4 mt-6">
@@ -200,11 +222,15 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 font-black text-white"><div className="w-8 h-8 bg-white rounded flex items-center justify-center"><Calculator size={16} className="text-[#0B1E42]"/></div>Mwalimu Math</div>
-            <p className="text-xs mt-2 text-blue-100">Tunasaidia wanafunzi wa Tanzania kufaulu Mathematics kwa nukuu rahisi na za kueleweka.</p>
+            <p className="text-xs mt-2 text-blue-100 leading-relaxed">{tr.footerDesc}</p>
           </div>
           <div>
             <h4 className="font-bold text-white text-sm">Links</h4>
-            <ul className="mt-2 text-xs space-y-1.5 text-blue-100"><li><a href="https://www.necta.go.tz" target="_blank" className="hover:text-white">Necta</a></li><li><a href="https://www.moe.go.tz" target="_blank" className="hover:text-white">Wizara ya Elimu</a></li></ul>
+            <ul className="mt-2 text-xs space-y-1.5 text-blue-100">
+              <li><a href="https://www.necta.go.tz" target="_blank" className="hover:text-white">Necta</a></li>
+              <li><a href="https://www.moe.go.tz" target="_blank" className="hover:text-white">Wizara ya Elimu</a></li>
+              <li><Link href="#" className="hover:text-white font-bold">LY Tech</Link></li>
+            </ul>
           </div>
           <div>
             <h4 className="font-bold text-white text-sm">Contact</h4>
