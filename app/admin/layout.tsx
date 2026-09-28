@@ -73,16 +73,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
+  const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(()=>{
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenDropdown(null)
   },[pathname])
 
-  const handleLogout = useCallback(async () => { localStorage.clear(); await supabase.auth.signOut(); router.replace("/admin/login") }, [router])
+  useEffect(()=>{
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (pathname === "/admin/login") {
+        if (session) router.replace("/admin")
+        else setCheckingAuth(false)
+        return
+      }
+      if (!session) router.replace("/admin/login")
+      else setCheckingAuth(false)
+    }
+    checkAuth()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      if (!session && pathname!== "/admin/login") router.replace("/admin/login")
+      if (session && pathname === "/admin/login") router.replace("/admin")
+    })
+    const handlePageShow = (e: PageTransitionEvent) => { if (e.persisted) checkAuth() }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('pageshow', handlePageShow)
+    }
+  },[pathname, router])
 
-  if (pathname === "/admin/login") {
-    return <>{children}</>
+  const handleLogout = useCallback(async () => {
+    localStorage.clear()
+    sessionStorage.clear()
+    await supabase.auth.signOut()
+    window.location.replace("/admin/login")
+  }, [])
+
+  if (pathname === "/admin/login") return <>{children}</>
+
+  if (checkingAuth) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#f6f7fb]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-3 text-sm text-gray-500">Inathibitisha...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
