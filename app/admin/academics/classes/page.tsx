@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Search, Plus, Eye, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 
 type ClassRow = { id: string; name: string; teacher: string; students: number; capacity: number; room: string; status: string }
@@ -14,18 +14,43 @@ const dummyClasses: ClassRow[] = [
   { id: "7", name: "Form VI - PGM", teacher: "Ms. Grace", students: 32, capacity: 35, room: "Block D-02", status: "active" },
 ]
 
+function getOrdinal(n: number) {
+  if (n > 3 && n < 21) return "th"
+  switch (n % 10) {
+    case 1: return "st"
+    case 2: return "nd"
+    case 3: return "rd"
+    default: return "th"
+  }
+}
+
 export default function ClassesPage(){
   const [search, setSearch] = useState("")
   const [perPage, setPerPage] = useState(25)
   const [page, setPage] = useState(1)
+  const [now, setNow] = useState(new Date())
 
   const filtered = useMemo(()=> dummyClasses.filter(c=> c.name.toLowerCase().includes(search.toLowerCase()) || c.teacher.toLowerCase().includes(search.toLowerCase())), [search])
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
   const paged = filtered.slice((page-1)*perPage, page*perPage)
 
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000 * 30)
+    return () => clearInterval(id)
+  }, [])
+
+  const formattedDateTime = useMemo(() => {
+    const weekday = now.toLocaleDateString("en-US", { weekday: "long" })
+    const day = now.getDate()
+    const month = now.toLocaleDateString("en-US", { month: "long" })
+    const year = now.getFullYear()
+    const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })
+    return `${weekday} ${day}${getOrdinal(day)} of ${month} ${year} ${time}`
+  }, [now])
+
   return (
     <div className="space-y-4">
-      {/* 1. BREADCRUMBS + SEARCH - kama Admin Page */}
+      {/* 1. BREADCRUMBS + DATE TIME - kama Admin Page */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
         <div className="flex items-center gap-1.5 text-sm text-gray-500">
           <span>Dashboard</span>
@@ -34,17 +59,21 @@ export default function ClassesPage(){
           <ChevronRight size={14} />
           <span className="font-bold text-[#1d4ed8]">Manage Classes</span>
         </div>
-        <div className="w-full md:w-1/2 md:max-w-md relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-          <input value={search} onChange={e=> { setSearch(e.target.value); setPage(1) }} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300" />
+        <div className="text-sm text-gray-500">
+          {formattedDateTime}
         </div>
       </div>
 
-      {/* 2. TITLE + PER PAGE + ADD - mstari mmoja sawa */}
-      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
-        <h1 className="text-lg font-extrabold">Classes List</h1>
+      {/* 2. TITLE + SEARCH KATIKATI + PER PAGE + ADD - kama screenshot */}
+      <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
+        <h1 className="text-lg font-extrabold shrink-0">Classes List</h1>
 
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="w-full lg:flex-1 lg:max-w-md lg:mx-6 relative order-3 lg:order-2">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+          <input value={search} onChange={e=> { setSearch(e.target.value); setPage(1) }} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300" />
+        </div>
+
+        <div className="flex items-center gap-3 ml-auto lg:ml-0 order-2 lg:order-3">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500 text-xs">Show</span>
             <select value={perPage} onChange={e=> { setPerPage(Number(e.target.value)); setPage(1) }} className="border border-gray-200/70 rounded-lg px-3 py-2 text-sm bg-white outline-none">
