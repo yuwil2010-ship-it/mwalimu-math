@@ -1,8 +1,6 @@
-// app/admin/layout.tsx - FIX ya login kuto-redirect
 "use client"
 import { useState, useEffect, useMemo, useCallback, createContext } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { supabase } from "@/lib/supabase"
 import { Users, GraduationCap, LayoutDashboard, Calendar, Settings, BarChart3, LogOut, Calculator, ChevronDown, Menu, X, Globe, type LucideIcon } from "lucide-react"
 
 type SubItem = { label: string; href: string }
@@ -82,48 +80,48 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   },[pathname])
 
   useEffect(()=>{
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+    const checkAuth = () => {
+      const authed = localStorage.getItem("mwalimu_admin_authed") === "true"
+
       if (pathname === "/admin/login") {
-        if (session) {
+        if (authed) {
           router.replace("/admin")
         } else {
           setCheckingAuth(false)
         }
         return
       }
-      if (!session) {
+
+      if (!authed) {
         router.replace("/admin/login")
       } else {
         setCheckingAuth(false)
       }
     }
+
     checkAuth()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!session && pathname!== "/admin/login") {
-        router.replace("/admin/login")
-      }
-      if (session && pathname === "/admin/login") {
-        router.replace("/admin")
-      }
-    })
-    const handlePageShow = (e: PageTransitionEvent) => { if (e.persisted) checkAuth() }
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) checkAuth()
+    }
     window.addEventListener('pageshow', handlePageShow)
+
     return () => {
-      subscription.unsubscribe()
       window.removeEventListener('pageshow', handlePageShow)
     }
   },[pathname, router])
 
-  const handleLogout = useCallback(async () => {
-    localStorage.clear()
-    sessionStorage.clear()
-    await supabase.auth.signOut()
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("mwalimu_admin_authed")
+    localStorage.removeItem("mwalimu_admin_role")
+    localStorage.removeItem("mwalimu_admin_id")
+    localStorage.removeItem("mwalimu_admin_name")
+    localStorage.removeItem("mwalimu_admin_email")
+    localStorage.removeItem("mwalimu_admin_last_activity")
     window.location.replace("/admin/login")
   }, [])
 
   if (pathname === "/admin/login") {
-    // Kama bado inacheck auth na kuna session, onyesha loading badala ya login form
     if (checkingAuth) {
       return (
         <div className="h-screen flex items-center justify-center bg-[#f6f7fb]">
