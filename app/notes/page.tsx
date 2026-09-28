@@ -56,7 +56,7 @@ const subjects = ["Mathematics", "Computer"] as const
 const NETWORKS = [
   { id: "Vodacom", label: "Vodacom", sub: "M-Pesa", prefixes: ["74","75","76"], color: "bg-red-600" },
   { id: "Yas", label: "Yas", sub: "Mixx", prefixes: ["71","65","67"], color: "bg-blue-600" },
-  { id: "Airtel", label: "Airtel", sub: "Money", prefixes: ["68","69","78","79"], color: "bg-red-500" },
+  { id: "【entity-Airtel¦canonical_name=Airtel】", label: "【entity-Airtel¦canonical_name=Airtel】", sub: "Money", prefixes: ["68","69","78","79"], color: "bg-red-500" },
   { id: "Halotel", label: "Halotel", sub: "HaloPesa", prefixes: ["62"], color: "bg-orange-500" },
 ] as const
 
@@ -294,16 +294,16 @@ function NotesContent() {
       <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
           <div className="flex justify-between items-center mb-4">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8]">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8] cursor-pointer">
               <ArrowLeft size={16} /> {tr.rudi}
             </Link>
-            <Link href="/admin" className="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm">
+            <Link href="/admin/login" className="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm cursor-pointer">
               Login
             </Link>
           </div>
 
           <div className="mt-2">
-            <h2 className="text- font-extrabold text-gray-900">{tr.chaguaSomo} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h2>
+            <h2 className="text-sm font-extrabold text-gray-900">{tr.chaguaSomo} {loadingTopics && <span className="text-sm font-normal text-gray-400">(Inapakia...)</span>}</h2>
             <div className="grid grid-cols-2 gap-2 mt-3">
               {subjects.map(subj => (
                 <button
@@ -318,13 +318,13 @@ function NotesContent() {
           </div>
 
           <div className="mt-6">
-            <h2 className="text- font-extrabold text-gray-900">{tr.chaguaKidato}</h2>
+            <h2 className="text-sm font-extrabold text-gray-900">{tr.chaguaKidato}</h2>
             <div className="grid grid-cols-4 gap-2 mt-3">
               {Object.keys(mathSyllabus).map(form => (
                 <button
                   key={form}
                   onClick={() => setActiveForm(form)}
-                  className={`w-full px-2 py-2 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center whitespace-nowrap overflow-hidden text-ellipsis leading-tight ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}
+                  className={`w-full px-2 py-2 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center whitespace-nowrap overflow-hidden text-ellipsis leading-tight ${activeForm === form? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-md' : 'bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'}`}
                 >
                   {form}
                 </button>
@@ -336,19 +336,19 @@ function NotesContent() {
             {activeForm === "Mazoezi" && (
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-4">
                 {Object.keys(mazoeziBySubject[activeSubject]).map(f => (
-                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-2 py-1.5 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
+                  <button key={f} onClick={() => setMazoeziForm(f)} className={`w-full px-2 py-1.5 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap ${mazoeziForm === f? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f}</button>
                 ))}
               </div>
             )}
             {activeForm === "Bonus" && (
               <div className="grid grid-cols-3 gap-1.5 mb-4">
                 {bonusForms.map(f => (
-                  <button key={f.value} onClick={() => setBonusForm(f.value)} className={`w-full px-2 py-1.5 rounded-full text- sm:text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap leading-tight ${bonusForm === f.value? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f.label}</button>
+                  <button key={f.value} onClick={() => setBonusForm(f.value)} className={`w-full px-2 py-1.5 rounded-full text-xs font-bold border cursor-pointer transition-all duration-200 hover:scale-[1.02] text-center whitespace-nowrap leading-tight ${bonusForm === f.value? 'bg-[#1d4ed8] text-white border-[#1d4ed8] shadow-sm' : 'bg-gray-50 hover:bg-white hover:border-gray-300'}`}>{f.label}</button>
                 ))}
               </div>
             )}
 
-            <h3 className="text- font-bold mb-3">{tr.chaguaTopic} <span className="text-xs font-normal text-gray-500">({activeSubject} - {activeForm === "Mazoezi"? mazoeziForm : activeForm === "Bonus"? bonusForm : activeForm})</span></h3>
+            <h3 className="text-sm font-bold mb-3">{tr.chaguaTopic} <span className="text-xs font-normal text-gray-500">({activeSubject} - {activeForm === "Mazoezi"? mazoeziForm : activeForm === "Bonus"? bonusForm : activeForm})</span></h3>
 
             <div className="space-y-2">
               {currentTopics.map(topic => {

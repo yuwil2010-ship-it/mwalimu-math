@@ -139,6 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     localStorage.removeItem("mwalimu_admin_name")
     localStorage.removeItem("mwalimu_admin_email")
     localStorage.removeItem("mwalimu_admin_last_activity")
+    sessionStorage.removeItem("hasLoginBeforeAdmin")
     window.history.replaceState(null, "", "/admin/login")
     window.location.replace("/admin/login")
   }, [])
@@ -165,14 +166,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const checkAuth = () => {
       const authed = localStorage.getItem("mwalimu_admin_authed") === "true"
       if (pathname === "/admin/login") {
-        if (authed) router.replace("/admin")
-        else setCheckingAuth(false)
+        if (authed) {
+          router.replace("/admin")
+        } else setCheckingAuth(false)
         return
       }
       if (!authed){
         router.replace("/admin/login")
         window.history.replaceState(null, "", "/admin/login")
-      } else setCheckingAuth(false)
+        sessionStorage.removeItem("hasLoginBeforeAdmin")
+      } else {
+        if(pathname === "/admin" &&!sessionStorage.getItem("hasLoginBeforeAdmin")){
+          window.history.replaceState(null, "", "/admin/login")
+          window.history.pushState(null, "", "/admin")
+          sessionStorage.setItem("hasLoginBeforeAdmin", "true")
+        }
+        setCheckingAuth(false)
+      }
     }
     checkAuth()
     const handlePageShow = (e: PageTransitionEvent) => { if (e.persisted) checkAuth() }

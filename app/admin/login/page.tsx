@@ -19,6 +19,7 @@ export default function AdminLoginPage() {
     localStorage.removeItem("mwalimu_admin_name")
     localStorage.removeItem("mwalimu_admin_email")
     localStorage.removeItem("mwalimu_admin_last_activity")
+    sessionStorage.removeItem("hasLoginBeforeAdmin")
     window.history.replaceState(null, "", "/admin/login")
   }, [])
 
@@ -36,12 +37,13 @@ export default function AdminLoginPage() {
         localStorage.setItem("mwalimu_admin_name", emailLower)
         localStorage.setItem("mwalimu_admin_id", "0")
         localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
-        router.replace("/admin")
+        window.history.replaceState(null, "", "/admin/login")
+        router.push("/admin")
         return
       }
 
       const { data, error } = await supabase.from("admins").select("*").eq("email", emailLower).single()
-      if (error || !data) throw new Error("Email haipo kwenye admins table")
+      if (error ||!data) throw new Error("Email haipo kwenye admins table")
       if ((data.password || "").toLowerCase().trim()!== passLower) throw new Error("Password si sahihi")
 
       localStorage.setItem("mwalimu_admin_authed", "true")
@@ -50,9 +52,10 @@ export default function AdminLoginPage() {
       localStorage.setItem("mwalimu_admin_name", data.name)
       localStorage.setItem("mwalimu_admin_email", data.email)
       localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
-      router.replace("/admin")
+      window.history.replaceState(null, "", "/admin/login")
+      router.push("/admin")
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Kosa limetokea"
+      const message = err instanceof Error? err.message : "Kosa limetokea"
       setMsg(message)
     } finally {
       setLoading(false)
