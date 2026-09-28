@@ -156,7 +156,7 @@ export default function ManageAdminPage() {
           <ChevronRight size={14} />
           <span className="font-bold text-[#1d4ed8]">Manage Admin</span>
         </div>
-        <div className="font-serif italic text- text-gray-700 border-b border-gray-200 pb-1">
+        <div className="text-sm text-gray-500">
           {formattedDateTime}
         </div>
       </div>
