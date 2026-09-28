@@ -13,7 +13,6 @@ function getOrdinal(n: number) {
   if (n > 3 && n < 21) return "th"
   switch (n % 10) { case 1: return "st"; case 2: return "nd"; case 3: return "rd"; default: return "th"; }
 }
-
 function getFormFolder(formName: string){
   const m = formName.match(/Form\s*([IV]+)/i)
   if(m) return `Form-${m[1].toUpperCase()}`
@@ -31,13 +30,9 @@ function buildStoragePath(row: TopicRow){
   const subjectFolder = getSubjectFolder(row.subject)
   const safeTopic = row.topic_name.replace(/[^a-zA-Z0-9\s-]/g,'').trim().replace(/\s+/g,'-')
   const fileName = `${safeTopic}.pdf`
-  if(row.category === 'MAZOEZI'){
-    return `Mazoezi/${formFolder}/${subjectFolder}/${fileName}`
-  } else if(row.category === 'BONUS'){
-    return `Paper-Bonus/${formFolder}/${subjectFolder}/${fileName}`
-  } else {
-    return `${formFolder}/${subjectFolder}/${fileName}`
-  }
+  if(row.category === 'MAZOEZI') return `Mazoezi/${formFolder}/${subjectFolder}/${fileName}`
+  if(row.category === 'BONUS') return `Paper-Bonus/${formFolder}/${subjectFolder}/${fileName}`
+  return `${formFolder}/${subjectFolder}/${fileName}`
 }
 
 export default function PdfsPage(){
@@ -71,7 +66,6 @@ export default function PdfsPage(){
     }
     setLoading(false)
   }
-
   useEffect(()=>{ fetchTopics() },[filterForm])
 
   const seedTopics = async () => {
@@ -123,6 +117,20 @@ export default function PdfsPage(){
   const start = total === 0? 0 : (page-1)*perPage + 1
   const end = Math.min(page*perPage, total)
 
+  const getPageNumbers = () => {
+    const pages: (number|string)[] = []
+    if(totalPages <= 7){
+      for(let i=1;i<=totalPages;i++) pages.push(i)
+    } else {
+      pages.push(1)
+      if(page > 3) pages.push("...")
+      for(let i=Math.max(2, page-1); i<=Math.min(totalPages-1, page+1); i++) pages.push(i)
+      if(page < totalPages-2) pages.push("...")
+      pages.push(totalPages)
+    }
+    return pages
+  }
+
   return (
     <div className="space-y-4 w-full">
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
@@ -130,7 +138,6 @@ export default function PdfsPage(){
         <div className="text-sm text-gray-500">{formattedDateTime}</div>
       </div>
 
-      {/* 1. SEARCH NDOGO + SHOW */}
       <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
         <h1 className="text-lg font-extrabold shrink-0">Pdfs List</h1>
         <div className="w-full lg:max-w- lg:mx-4 relative order-3 lg:order-2">
@@ -158,33 +165,59 @@ export default function PdfsPage(){
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto"><table className="w-full text-xs"><thead className="bg-gray-50 text-gray-500"><tr><th className="text-left px-3 py-2">full_key</th><th className="text-center px-3 py-2">Status</th><th className="text-center px-3 py-2">Action</th></tr></thead><tbody>{loading?<tr><td colSpan={3} className="text-center py-8">Inapakia...</td></tr>:paged.map(row=>(
-          <tr key={row.id} className="border-t hover:bg-gray-50">
-            <td className="px-3 py-2">
-              <div className="font-medium text-xs">{row.full_key}</div>
-              <div className="text- text-gray-400 truncate max-w-">{row.storage_path || (row.has_pdf? 'PDF Ipo' : 'Hakuna PDF')} • {buildStoragePath(row)}</div>
-            </td>
-            <td className="px-3 py-2 text-center"><span className={`px-2 py-0.5 rounded-full font-bold ${row.is_available?"bg-green-100 text-green-700":"bg-red-100 text-red-600"}`}>{row.is_available?"Ipo":"Haijapakiwa"}</span></td>
-            <td className="px-3 py-2 text-center">
-              <div className="flex items-center justify-center gap-1.5">
-                <button disabled={savingId===row.id} onClick={()=>toggleAvailability(row)} className={`px-3 py-1 rounded-full font-bold ${row.is_available?"bg-red-600 text-white":"bg-[#1d4ed8] text-white"}`}>{savingId===row.id?"...":row.is_available?"ZIMA":"WASHA"}</button>
-                <label className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border cursor-pointer ${uploadingId===row.id?'bg-gray-100':'bg-white hover:bg-gray-50'}`}>
-                  {uploadingId===row.id? <Loader2 size={12} className="animate-spin"/> : <Upload size={12}/>}
-                  {uploadingId===row.id? "..." : "Pakia"}
-                  <input type="file" accept="application/pdf" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadPdf(f,row) }} />
-                </label>
-              </div>
-            </td>
-          </tr>
-        ))}</tbody></table></div>
+        {/* DESKTOP TABLE */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-xs"><thead className="bg-gray-50 text-gray-500"><tr><th className="text-left px-3 py-2">full_key</th><th className="text-center px-3 py-2">Status</th><th className="text-center px-3 py-2">Action</th></tr></thead><tbody>{loading?<tr><td colSpan={3} className="text-center py-8">Inapakia...</td></tr>:paged.map(row=>(
+            <tr key={row.id} className="border-t hover:bg-gray-50">
+              <td className="px-3 py-2">
+                <div className="font-medium text-xs">{row.full_key}</div>
+                <div className="text- text-gray-400 truncate max-w-">{row.storage_path || (row.has_pdf? 'PDF Ipo' : 'Hakuna PDF')} • {buildStoragePath(row)}</div>
+              </td>
+              <td className="px-3 py-2 text-center"><span className={`px-2 py-0.5 rounded-full font-bold ${row.is_available?"bg-green-100 text-green-700":"bg-red-100 text-red-600"}`}>{row.is_available?"Ipo":"Haijapakiwa"}</span></td>
+              <td className="px-3 py-2 text-center">
+                <div className="flex items-center justify-center gap-1.5">
+                  <button disabled={savingId===row.id} onClick={()=>toggleAvailability(row)} className={`px-3 py-1 rounded-full font-bold ${row.is_available?"bg-red-600 text-white":"bg-[#1d4ed8] text-white"}`}>{savingId===row.id?"...":row.is_available?"ZIMA":"WASHA"}</button>
+                  <label className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border cursor-pointer ${uploadingId===row.id?'bg-gray-100':'bg-white hover:bg-gray-50'}`}>
+                    {uploadingId===row.id? <Loader2 size={12} className="animate-spin"/> : <Upload size={12}/>}
+                    {uploadingId===row.id? "..." : "Pakia"}
+                    <input type="file" accept="application/pdf" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadPdf(f,row) }} />
+                  </label>
+                </div>
+              </td>
+            </tr>
+          ))}</tbody></table>
+        </div>
 
-        {/* 2. PAGINATION KAMA KWENYE SCREENSHOT */}
+        {/* MOBILE CARDS */}
+        <div className="md:hidden p-2 space-y-2">
+          {loading? <div className="text-center py-8 text-xs text-gray-400">Inapakia...</div> :
+          paged.map(row=>(
+            <div key={row.id} className="border border-gray-100 rounded-xl p-3 space-y-2 bg-white shadow-sm">
+              <div className="font-bold text-xs leading-tight line-clamp-2">{row.full_key}</div>
+              <div className="text- text-gray-400 break-all">{buildStoragePath(row)}</div>
+              <div className="flex justify-between items-center pt-1">
+                <span className={`px-2 py-0.5 rounded-full text- font-bold ${row.is_available?"bg-green-100 text-green-700":"bg-red-100 text-red-600"} ${row.has_pdf?"ring-1 ring-green-200":""}`}>{row.is_available?"Ipo":"Haijapakiwa"} {row.has_pdf?"• PDF" : ""}</span>
+                <div className="flex gap-1.5">
+                  <button disabled={savingId===row.id} onClick={()=>toggleAvailability(row)} className={`px-3 py-1.5 rounded-full text- font-bold ${row.is_available?"bg-red-600 text-white":"bg-[#1d4ed8] text-white"}`}>{row.is_available?"ZIMA":"WASHA"}</button>
+                  <label className="px-3 py-1.5 rounded-full text- font-bold border bg-white flex items-center gap-1">
+                    <Upload size={10}/> Pakia
+                    <input type="file" accept="application/pdf" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadPdf(f,row) }} />
+                  </label>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* PAGINATION */}
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center px-4 py-3 border-t bg-white">
           <span className="text-xs text-gray-500">Showing {start} to {end} of {total}</span>
-          <div className="flex items-center gap-1.5">
-            <button disabled={page===1} onClick={()=>setPage(p=>Math.max(1,p-1))} className="w-9 h-9 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"><ChevronLeft size={16}/></button>
-            <span className="w-9 h-9 bg-[#1d4ed8] text-white rounded-lg flex items-center justify-center text-sm font-bold">{page}</span>
-            <button disabled={page>=totalPages} onClick={()=>setPage(p=>Math.min(totalPages,p+1))} className="w-9 h-9 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"><ChevronRight size={16}/></button>
+          <div className="flex items-center gap-1">
+            <button disabled={page===1} onClick={()=>setPage(p=>Math.max(1,p-1))} className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"><ChevronLeft size={14}/></button>
+            {getPageNumbers().map((p,i)=> p==="..."? <span key={`dot-${i}`} className="px-1 text-xs">...</span> :
+              <button key={`${p}-${i}`} onClick={()=>setPage(p as number)} className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${page===p?"bg-[#1d4ed8] text-white shadow-sm":"border border-gray-200 hover:bg-gray-50"}`}>{p}</button>
+            )}
+            <button disabled={page>=totalPages} onClick={()=>setPage(p=>Math.min(totalPages,p+1))} className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"><ChevronRight size={14}/></button>
           </div>
         </div>
       </div>
