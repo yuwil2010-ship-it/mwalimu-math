@@ -60,7 +60,7 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
     <>
       <div className="h-16 px-5 flex items-center justify-between font-black text-base bg-[#1d4ed8] text-white shrink-0">
         <div className="flex items-center gap-2"><div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center"><Calculator size={18} className="text-[#1d4ed8]" /></div>Mwalimu Math</div>
-        {onClose && <button onClick={onClose}><X size={18}/></button>}
+        {onClose && <button onClick={onClose} className="cursor-pointer"><X size={18}/></button>}
       </div>
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {menu.map((item) => {
@@ -68,13 +68,13 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
           const open = isMainOpen(item.name)
           return (
             <div key={item.name}>
-              <button onClick={()=> { if(item.sub.length>0){ if(open){ setOpenDropdown("CLOSED") } else { setOpenDropdown(item.name) } }else{ setOpenDropdown(null); router.push(item.href); setMobileOpen(false) } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}>
+              <button onClick={()=> { if(item.sub.length>0){ if(open){ setOpenDropdown("CLOSED") } else { setOpenDropdown(item.name) } }else{ setOpenDropdown(null); router.push(item.href); setMobileOpen(false) } }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm cursor-pointer ${isMainActive? "bg-[#dbeafe] text-[#1d4ed8]" : "text-gray-600 hover:bg-gray-50"}`}>
                 <span className="flex items-center gap-3"><item.icon size={18} /> {item.name}</span>
                 {item.sub.length>0 && <ChevronDown size={14} className={`${open? "rotate-180" : ""} transition`} />}
               </button>
               {item.sub.length>0 && open && (
                 <div className="mt-1 ml-3 pl-3 border-l space-y-1">
-                  {item.sub.map((sub) => <button key={sub.href} onClick={()=> { router.push(sub.href); setMobileOpen(false) }} className={`w-full text-left text-xs px-3 py-2 rounded-lg ${pathname === sub.href? "bg-[#eef2ff] text-[#1d4ed8] font-bold" : "text-gray-500 hover:text-[#1d4ed8]"}`}>{sub.label}</button>)}
+                  {item.sub.map((sub) => <button key={sub.href} onClick={()=> { router.push(sub.href); setMobileOpen(false) }} className={`w-full text-left text-xs px-3 py-2 rounded-lg cursor-pointer ${pathname === sub.href? "bg-[#eef2ff] text-[#1d4ed8] font-bold" : "text-gray-500 hover:text-[#1d4ed8]"}`}>{sub.label}</button>)}
                 </div>
               )}
             </div>
@@ -83,7 +83,7 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
       </nav>
       <div className="border-t p-3">
         <div className="relative" ref={roleRef}>
-          <button onClick={()=>setRoleOpen(v=>!v)} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#f6f7fb] hover:bg-gray-100 text-left transition">
+          <button onClick={()=>setRoleOpen(v=>!v)} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#f6f7fb] hover:bg-gray-100 text-left transition cursor-pointer">
             <div className="w-7 h-7 rounded-full bg-[#eef2ff] flex items-center justify-center text-[#1d4ed8]"><User size={14}/></div>
             <div className="flex-1 min-w-0">
               <p className="text- text-gray-500 uppercase tracking-wide leading-none">User role</p>
@@ -94,7 +94,7 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
           {roleOpen && (
             <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
               <div className="p-2">
-                <button onClick={()=>{ setRoleOpen(false); handleLogout() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                <button onClick={()=>{ setRoleOpen(false); handleLogout() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg cursor-pointer">
                   <LogOut size={16}/> Sign Out
                 </button>
               </div>
@@ -132,6 +132,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setUserInfo({ name, role, email, id })
   },[pathname])
 
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("mwalimu_admin_authed")
+    localStorage.removeItem("mwalimu_admin_role")
+    localStorage.removeItem("mwalimu_admin_id")
+    localStorage.removeItem("mwalimu_admin_name")
+    localStorage.removeItem("mwalimu_admin_email")
+    localStorage.removeItem("mwalimu_admin_last_activity")
+    window.history.replaceState(null, "", "/admin/login")
+    window.location.replace("/admin/login")
+  }, [])
+
+  useEffect(()=>{
+    if(pathname === "/admin/login") return
+    const updateActivity = () => localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
+    updateActivity()
+    const events: (keyof WindowEventMap)[] = ["mousemove","keydown","click","scroll","touchstart"]
+    events.forEach(ev => window.addEventListener(ev, updateActivity, { passive: true } as AddEventListenerOptions))
+    const interval = setInterval(()=>{
+      const last = parseInt(localStorage.getItem("mwalimu_admin_last_activity") || "0", 10)
+      if(last && Date.now() - last > 5 * 60 * 1000){
+        handleLogout()
+      }
+    }, 30000)
+    return ()=>{
+      events.forEach(ev => window.removeEventListener(ev, updateActivity))
+      clearInterval(interval)
+    }
+  },[pathname, handleLogout])
+
   useEffect(()=>{
     const checkAuth = () => {
       const authed = localStorage.getItem("mwalimu_admin_authed") === "true"
@@ -140,8 +169,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         else setCheckingAuth(false)
         return
       }
-      if (!authed) router.replace("/admin/login")
-      else setCheckingAuth(false)
+      if (!authed){
+        router.replace("/admin/login")
+        window.history.replaceState(null, "", "/admin/login")
+      } else setCheckingAuth(false)
     }
     checkAuth()
     const handlePageShow = (e: PageTransitionEvent) => { if (e.persisted) checkAuth() }
@@ -157,16 +188,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       document.removeEventListener('mousedown', handleClickOutside)
     }
   },[pathname, router])
-
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("mwalimu_admin_authed")
-    localStorage.removeItem("mwalimu_admin_role")
-    localStorage.removeItem("mwalimu_admin_id")
-    localStorage.removeItem("mwalimu_admin_name")
-    localStorage.removeItem("mwalimu_admin_email")
-    localStorage.removeItem("mwalimu_admin_last_activity")
-    window.location.replace("/admin/login")
-  }, [])
 
   const handleMyProfile = useCallback(()=>{
     setUserMenuOpen(false)
@@ -208,17 +229,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <main className="flex-1 flex flex-col overflow-hidden">
           <header className="h-16 bg-[#1d4ed8] text-white px-4 md:px-6 flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-3">
-              <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button>
+              <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center cursor-pointer"><Menu size={20}/></button>
               <h1 className="font-black text-base md:text-lg tracking-wide">Admin</h1>
             </div>
 
             <div className="ml-auto flex items-center gap-3">
-              <button onClick={()=> setLang(p=> p==='sw'? 'en' : 'sw')} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold">
+              <button onClick={()=> setLang(p=> p==='sw'? 'en' : 'sw')} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer">
                 <Globe size={14}/> {lang==='sw'? 'SW' : 'EN'}
               </button>
 
               <div className="relative" ref={userMenuRef}>
-                <button onClick={()=>setUserMenuOpen(v=>!v)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 pl-2 pr-3 py-1.5 rounded-full transition">
+                <button onClick={()=>setUserMenuOpen(v=>!v)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 pl-2 pr-3 py-1.5 rounded-full transition cursor-pointer">
                   <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center text-[#1d4ed8]"><User size={14}/></div>
                   <span className="text-sm font-semibold hidden sm:block max-w- truncate">{userInfo.name}</span>
                   <ChevronDown size={14} className={`${userMenuOpen? "rotate-180" : ""} transition`} />
@@ -229,15 +250,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="p-3 flex items-center gap-2.5 border-b border-gray-100">
                       <div className="w-8 h-8 rounded-full bg-[#eef2ff] flex items-center justify-center text-[#1d4ed8]"><User size={16}/></div>
                       <div className="flex-1 min-w-0">
-                        <p className="text- font-bold text-gray-900 truncate leading-tight">{userInfo.name}</p>
-                        <p className="text- text-gray-500 truncate capitalize leading-tight">{userInfo.role}</p>
+                        <p className="text-sm font-bold text-gray-900 truncate leading-tight">{userInfo.name}</p>
+                        <p className="text-xs text-gray-500 truncate capitalize leading-tight">{userInfo.role}</p>
                       </div>
                     </div>
                     <div className="p-1.5">
-                      <button onClick={handleMyProfile} className="w-full flex items-center gap-2 px-3 py-1.5 text- text-gray-700 hover:bg-gray-50 rounded-lg">
+                      <button onClick={handleMyProfile} className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">
                         <User size={14}/> My profile
                       </button>
-                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-1.5 text- text-red-600 hover:bg-red-50 rounded-lg">
+                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg cursor-pointer">
                         <LogOut size={14}/> Sign Out
                       </button>
                     </div>
