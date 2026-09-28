@@ -1,22 +1,13 @@
 "use client"
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization */
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { Search, ChevronRight, ChevronDown, Database } from "lucide-react"
+import { Search, ChevronRight, Database } from "lucide-react"
 import { mathSyllabus, computerSyllabus } from "@/lib/syllabus"
 
 type TopicRow = { id: number; full_key: string; form_name: string; category: string; topic_name: string; subject?: string; is_available: boolean; has_pdf: boolean; storage_path: string | null }
 
 const FORMS = ["Form I","Form II","Form III","Form IV","Form V","Form VI","Mazoezi","Bonus"]
-const materialTypes = [
-  { label: "Scheme of works", href: "/admin/academics/materials/schemes" },
-  { label: "Lesson plan", href: "/admin/academics/materials/plans" },
-  { label: "Books", href: "/admin/academics/materials/books" },
-  { label: "Timetable", href: "/admin/academics/materials/timetable" },
-  { label: "Teaching aids", href: "/admin/academics/materials/aids" },
-  { label: "Pdfs", href: "/admin/academics/materials/pdfs" },
-]
 
 function getOrdinal(n: number) {
   if (n > 3 && n < 21) return "th"
@@ -24,13 +15,11 @@ function getOrdinal(n: number) {
 }
 
 export default function PdfsPage(){
-  const router = useRouter()
   const [topics,setTopics]=useState<TopicRow[]>([])
   const [loading,setLoading]=useState(true)
   const [filterForm,setFilterForm]=useState("Form I")
   const [search,setSearch]=useState("")
   const [savingId,setSavingId]=useState<number|null>(null)
-  const [showTypeDropdown,setShowTypeDropdown]=useState(false)
   const [seeding,setSeeding]=useState(false)
   const [now,setNow]=useState(new Date())
   const [perPage,setPerPage]=useState(25)
@@ -55,7 +44,10 @@ export default function PdfsPage(){
     }
     setLoading(false)
   }
-  useEffect(()=>{ fetchTopics() },[filterForm])
+
+  useEffect(()=>{
+    fetchTopics()
+  },[filterForm])
 
   const seedTopics = async () => {
     setSeeding(true)
