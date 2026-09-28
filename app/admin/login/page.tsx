@@ -70,12 +70,12 @@ export default function AdminLoginPage() {
           <div><label className="text-sm font-semibold">Email:</label><div className="relative mt-1.5"><User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/><input type="text" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@mwalimumath.co.tz" className="w-full pl-10 pr-3 py-2.5 border border-[#4F5AAE] rounded-lg text-sm outline-none"/></div></div>
           <div><label className="text-sm font-semibold">Password:</label><div className="relative mt-1.5"><Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/><input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="jina la mwanzo" className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none"/></div></div>
           {msg && <div className="text-xs p-2.5 rounded-lg bg-red-50 border border-red-100 text-red-600">{msg}</div>}
-          <button type="submit" disabled={loading} className="w-full bg-[#4F5AAE] text-white py-2.5 rounded-lg font-semibold text-sm">{loading?"...":"Log in"}</button>
+          <button type="submit" disabled={loading} className="w-full bg-[#4F5AAE] text-white py-2.5 rounded-lg font-semibold text-sm cursor-pointer hover:bg-[#3f4a9a] disabled:cursor-not-allowed disabled:opacity-60 transition-colors">{loading?"...":"Log in"}</button>
         </form>
       </div>
       <div className="mt-5 text-center space-y-3">
-        <p className="text-xs text-gray-500">Don&apos;t have an account? <Link href="/" className="text-[#4F5AAE] font-semibold hover:underline">Click here</Link></p>
-        <Link href="/notes" className="inline-flex items-center gap-1.5 text-xs text-[#4F5AAE] font-medium hover:underline"><ArrowLeft size={14}/> Back to notes</Link>
+        <p className="text-xs text-gray-500">Don&apos;t have an account? <Link href="/" className="text-[#4F5AAE] font-semibold hover:underline cursor-pointer">Click here</Link></p>
+        <Link href="/notes" className="inline-flex items-center gap-1.5 text-xs text-[#4F5AAE] font-medium hover:underline cursor-pointer"><ArrowLeft size={14}/> Back to notes</Link>
       </div>
     </div>
   )
