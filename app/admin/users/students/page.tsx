@@ -21,7 +21,7 @@ function getOrdinal(n: number) {
 const MOCK_STUDENTS: StudentItem[] = [
   { id: 1, name: "Yusuph Lihawa", email: "yusuph.form1@student.co.tz", description: "Student", form: "Form I", photo: "https://i.pravatar.cc/150?img=8" },
   { id: 2, name: "Fatma Ally", email: "fatma.form2@student.co.tz", description: "Student", form: "Form II", photo: "https://i.pravatar.cc/150?img=16" },
-  { id: 3, name: "【entity-Kelvin John¦canonical_name=Kelvin John】", email: "kelvin.form3@student.co.tz", description: "Student", form: "Form III", photo: "https://i.pravatar.cc/150?img=17" },
+  { id: 3, name: "Kelvin John", email: "kelvin.form3@student.co.tz", description: "Student", form: "Form III", photo: "https://i.pravatar.cc/150?img=17" },
   { id: 4, name: "Zainab Hamis", email: "zainab.form4@student.co.tz", description: "Student", form: "Form IV", photo: "https://i.pravatar.cc/150?img=20" },
   { id: 5, name: "David Masanja", email: "david.form5@student.co.tz", description: "Student", form: "Form V", photo: "https://i.pravatar.cc/150?img=18" },
   { id: 6, name: "Aisha Juma", email: "aisha.form6@student.co.tz", description: "Student", form: "Form VI", photo: "https://i.pravatar.cc/150?img=23" },
