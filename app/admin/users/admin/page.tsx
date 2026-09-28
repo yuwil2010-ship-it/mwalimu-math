@@ -11,12 +11,23 @@ type AdminItem = {
   password?: string
 }
 
+function getOrdinal(n: number) {
+  if (n > 3 && n < 21) return "th"
+  switch (n % 10) {
+    case 1: return "st"
+    case 2: return "nd"
+    case 3: return "rd"
+    default: return "th"
+  }
+}
+
 export default function ManageAdminPage() {
   const [search, setSearch] = useState("")
   const [perPage, setPerPage] = useState(25)
   const [currentPage, setCurrentPage] = useState(1)
   const [data, setData] = useState<AdminItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [now, setNow] = useState(new Date())
 
   const [currentRole] = useState(() => {
     if (typeof window!== "undefined") {
@@ -48,6 +59,20 @@ export default function ManageAdminPage() {
     }
     loadAdmins()
   }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000 * 30)
+    return () => clearInterval(id)
+  }, [])
+
+  const formattedDateTime = useMemo(() => {
+    const weekday = now.toLocaleDateString("en-US", { weekday: "long" })
+    const day = now.getDate()
+    const month = now.toLocaleDateString("en-US", { month: "long" })
+    const year = now.getFullYear()
+    const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })
+    return `${weekday} ${day}${getOrdinal(day)} of ${month} ${year} ${time}`
+  }, [now])
 
   const filtered = useMemo(() => {
     const s = search.toLowerCase()
@@ -122,7 +147,7 @@ export default function ManageAdminPage() {
 
   return (
     <div className="space-y-4">
-      {/* 1. BREADCRUMBS - mahali palipokuwa na Title ya zamani */}
+      {/* 1. BREADCRUMBS + DATE TIME - mstari mmoja */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
         <div className="flex items-center gap-1.5 text-sm text-gray-500">
           <span>Dashboard</span>
@@ -131,19 +156,21 @@ export default function ManageAdminPage() {
           <ChevronRight size={14} />
           <span className="font-bold text-[#1d4ed8]">Manage Admin</span>
         </div>
-        <div className="w-full md:w-1/2 md:max-w-md relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1) }} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300" />
+        <div className="font-serif italic text- text-gray-700 border-b border-gray-200 pb-1">
+          {formattedDateTime}
         </div>
       </div>
 
-      {/* 2. TITLE + PER PAGE + ADD BUTTON - mstari mmoja sawa */}
-      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
-        {/* Title imehamia hapa palipokuwa na dropdown ya zamani */}
-        <h1 className="text-lg font-extrabold">Admins List</h1>
+      {/* 2. TITLE + SEARCH KATIKATI + PER PAGE + ADD */}
+      <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
+        <h1 className="text-lg font-extrabold shrink-0">Admins List</h1>
 
-        <div className="flex items-center gap-3 ml-auto">
-          {/* Per Page iko katikati ya Title na Add button */}
+        <div className="w-full lg:flex-1 lg:max-w-md lg:mx-6 relative order-3 lg:order-2">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1) }} placeholder="Search by name..." className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200/70 bg-gray-50 text-sm outline-none focus:bg-white focus:border-gray-300" />
+        </div>
+
+        <div className="flex items-center gap-3 ml-auto lg:ml-0 order-2 lg:order-3">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500 text-xs">Show</span>
             <select value={perPage} onChange={e => { setPerPage(Number(e.target.value)); setCurrentPage(1) }} className="border border-gray-200/70 rounded-lg px-3 py-2 text-sm bg-white outline-none">
@@ -198,7 +225,7 @@ export default function ManageAdminPage() {
                 <div key={item.id} className="grid grid-cols-2 px-4 py-3.5 items-center hover:bg-gray-50/40">
                   <div className="pr-2">
                     <p className="text-sm font-medium truncate">{item.name}</p>
-                    <p className="text- text-gray-400 truncate">{item.email}</p>
+                    <p className="text-xs text-gray-400 truncate">{item.email}</p>
                     <div className="flex gap-3 mt-1.5">
                       <button onClick={() => { setSelected(item); setShowView(true) }} className="text-gray-400 hover:text-[#1d4ed8]"><Eye size={16} /></button>
                       <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-[#1d4ed8]"><Pencil size={16} /></button>
@@ -206,7 +233,7 @@ export default function ManageAdminPage() {
                     </div>
                   </div>
                   <div>
-                    <span className={`px-2.5 py-1 rounded-full text- font-bold ${item.description === 'super admin'? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>{item.description}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${item.description === 'super admin'? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>{item.description}</span>
                   </div>
                 </div>
               ))}
