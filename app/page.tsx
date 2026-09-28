@@ -95,9 +95,19 @@ export default function HomePage() {
         else if (row.category === "BONUS") form = "Bonus"
         if (!form ||!map[form]) return
 
-        const subjectField = (row.subject?? "").toLowerCase()
-        const combined = `${row.full_key?? ""} ${row.topic_name?? ""} ${subjectField}`.toLowerCase()
-        const isCS = combined.includes("computer") || combined.includes("comp")
+        // FIX: Tumia subject column moja kwa moja kama inavyotumika kwenye /notes page
+        // Hii itahakikisha idadi ya Computer inaendana na list ya supabase (29 badala ya 30)
+        const subjectField = (row.subject?? "").toLowerCase().trim()
+        let isCS: boolean
+
+        if (subjectField) {
+          // Kama subject ipo, iamini 100% - ndiyo chanzo cha ukweli kutoka supabase
+          isCS = subjectField.includes("computer") || subjectField === "cs" || subjectField === "ict" || subjectField === "computing" || subjectField === "comp"
+        } else {
+          // Fallback tu kama subject haipo kabisa - tafuta neno kamili "computer" tu, si "comp"
+          const combined = `${row.full_key?? ""} ${row.topic_name?? ""}`.toLowerCase()
+          isCS = combined.includes("computer")
+        }
 
         if (isCS) map[form].cs += 1
         else map[form].math += 1
@@ -108,7 +118,7 @@ export default function HomePage() {
   }, [])
 
   const kitabuData = baseKitabu.map(b => ({
-  ...b,
+ ...b,
     mathTopics: counts[b.form]?.math?? 0,
     csTopics: counts[b.form]?.cs?? 0,
   }))
