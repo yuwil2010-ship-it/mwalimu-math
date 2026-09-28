@@ -40,14 +40,25 @@ const menu: MenuItem[] = [
 
 function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen, handleLogout, onClose, router, userRole }: { pathname: string; openDropdown: string | null; setOpenDropdown: (v: string | null) => void; setMobileOpen: (v: boolean) => void; handleLogout: () => void; onClose?: () => void; router: Router; userRole: string }) {
   const autoOpen = useMemo(() => menu.find(m => pathname.startsWith(m.href) && m.href!== "/admin")?.name?? null, [pathname])
+  const [roleOpen, setRoleOpen] = useState(false)
+  const roleRef = useRef<HTMLDivElement>(null)
   const isMainOpen = (name: string) => {
     if (openDropdown === "CLOSED") return false
     if (openDropdown!== null) return openDropdown === name
     return autoOpen === name
   }
+
+  useEffect(()=>{
+    const handler = (e: MouseEvent) => {
+      if (roleRef.current &&!roleRef.current.contains(e.target as Node)) setRoleOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  },[])
+
   return (
     <>
-      <div className="px-5 py-5 flex items-center justify-between font-black text-base bg-[#1d4ed8] text-white">
+      <div className="h-16 px-5 flex items-center justify-between font-black text-base bg-[#1d4ed8] text-white shrink-0">
         <div className="flex items-center gap-2"><div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center"><Calculator size={18} className="text-[#1d4ed8]" /></div>Mwalimu Math</div>
         {onClose && <button onClick={onClose}><X size={18}/></button>}
       </div>
@@ -70,12 +81,26 @@ function SidebarContent({ pathname, openDropdown, setOpenDropdown, setMobileOpen
           )
         })}
       </nav>
-      <div className="border-t p-4 space-y-3">
-        <div className="px-2 py-2 bg-[#f6f7fb] rounded-lg">
-          <p className="text- text-gray-500 uppercase tracking-wide">Role</p>
-          <p className="text-sm font-bold text-[#1d4ed8] capitalize">{userRole || "super admin"}</p>
+      <div className="border-t p-3">
+        <div className="relative" ref={roleRef}>
+          <button onClick={()=>setRoleOpen(v=>!v)} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#f6f7fb] hover:bg-gray-100 text-left transition">
+            <div className="w-7 h-7 rounded-full bg-[#eef2ff] flex items-center justify-center text-[#1d4ed8]"><User size={14}/></div>
+            <div className="flex-1 min-w-0">
+              <p className="text- text-gray-500 uppercase tracking-wide leading-none">User role</p>
+              <p className="text-sm font-bold text-gray-900 capitalize truncate leading-tight mt-1">{userRole || "super admin"}</p>
+            </div>
+            <ChevronDown size={14} className={`${roleOpen? "rotate-180" : ""} transition text-gray-500`} />
+          </button>
+          {roleOpen && (
+            <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+              <div className="p-2">
+                <button onClick={()=>{ setRoleOpen(false); handleLogout() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                  <LogOut size={16}/> Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-        <button onClick={handleLogout} className="w-full flex gap-2 text-sm text-red-600 hover:bg-red-50 px-2 py-2 rounded-lg"><LogOut size={16}/> Sign Out</button>
       </div>
     </>
   )
@@ -88,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false)
   const [lang, setLang] = useState<'sw' | 'en'>('sw')
   const [checkingAuth, setCheckingAuth] = useState(true)
-  const [userInfo, setUserInfo] = useState({ name: "Admin", role: "super admin", email: "" })
+  const [userInfo, setUserInfo] = useState({ name: "Admin", role: "super admin", email: "", id: "" })
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
@@ -102,8 +127,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const name = localStorage.getItem("mwalimu_admin_name") || localStorage.getItem("mwalimu_admin_email") || "Admin"
     const role = localStorage.getItem("mwalimu_admin_role") || "super admin"
     const email = localStorage.getItem("mwalimu_admin_email") || ""
+    const id = localStorage.getItem("mwalimu_admin_id") || ""
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUserInfo({ name, role, email })
+    setUserInfo({ name, role, email, id })
   },[pathname])
 
   useEffect(()=>{
@@ -142,6 +168,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     window.location.replace("/admin/login")
   }, [])
 
+  const handleMyProfile = useCallback(()=>{
+    setUserMenuOpen(false)
+    const id = userInfo.id
+    if (id && id!== "0") {
+      router.push(`/admin/users/admin/${id}`)
+    } else {
+      router.push(`/admin/users/admin`)
+    }
+  },[router, userInfo.id])
+
   if (pathname === "/admin/login") {
     if (checkingAuth) {
       return (
@@ -170,42 +206,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="w-60 bg-white border-r hidden md:flex flex-col"><SidebarContent pathname={pathname} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileOpen={setMobileOpen} handleLogout={handleLogout} router={router} userRole={userInfo.role} /></aside>
         {mobileOpen && <div className="fixed inset-0 z-50 md:hidden flex"><div className="absolute inset-0 bg-black/50" onClick={()=>setMobileOpen(false)}></div><aside className="relative w-72 bg-white h-full flex flex-col"><SidebarContent pathname={pathname} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileOpen={setMobileOpen} handleLogout={handleLogout} onClose={()=>setMobileOpen(false)} router={router} userRole={userInfo.role} /></aside></div>}
         <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-[#1d4ed8] text-white px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+          <header className="h-16 bg-[#1d4ed8] text-white px-4 md:px-6 flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-3">
               <button onClick={()=>setMobileOpen(true)} className="md:hidden w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center"><Menu size={20}/></button>
               <h1 className="font-black text-base md:text-lg tracking-wide">Admin</h1>
             </div>
 
-            <button onClick={()=> setLang(p=> p==='sw'? 'en' : 'sw')} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold">
-              <Globe size={14}/> {lang==='sw'? 'SW' : 'EN'}
-            </button>
-
-            <div className="relative" ref={userMenuRef}>
-              <button onClick={()=>setUserMenuOpen(v=>!v)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 pl-2 pr-3 py-1.5 rounded-full transition">
-                <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center text-[#1d4ed8]"><User size={14}/></div>
-                <span className="text-sm font-semibold hidden sm:block max-w- truncate">{userInfo.name}</span>
-                <ChevronDown size={14} className={`${userMenuOpen? "rotate-180" : ""} transition`} />
+            <div className="ml-auto flex items-center gap-3">
+              <button onClick={()=> setLang(p=> p==='sw'? 'en' : 'sw')} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold">
+                <Globe size={14}/> {lang==='sw'? 'SW' : 'EN'}
               </button>
 
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
-                  <div className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#eef2ff] flex items-center justify-center text-[#1d4ed8]"><User size={20}/></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{userInfo.name}</p>
-                      <p className="text-xs text-gray-500 truncate capitalize">{userInfo.role}</p>
+              <div className="relative" ref={userMenuRef}>
+                <button onClick={()=>setUserMenuOpen(v=>!v)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 pl-2 pr-3 py-1.5 rounded-full transition">
+                  <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center text-[#1d4ed8]"><User size={14}/></div>
+                  <span className="text-sm font-semibold hidden sm:block max-w- truncate">{userInfo.name}</span>
+                  <ChevronDown size={14} className={`${userMenuOpen? "rotate-180" : ""} transition`} />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                    <div className="p-3 flex items-center gap-2.5 border-b border-gray-100">
+                      <div className="w-8 h-8 rounded-full bg-[#eef2ff] flex items-center justify-center text-[#1d4ed8]"><User size={16}/></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text- font-bold text-gray-900 truncate leading-tight">{userInfo.name}</p>
+                        <p className="text- text-gray-500 truncate capitalize leading-tight">{userInfo.role}</p>
+                      </div>
+                    </div>
+                    <div className="p-1.5">
+                      <button onClick={handleMyProfile} className="w-full flex items-center gap-2 px-3 py-1.5 text- text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <User size={14}/> My profile
+                      </button>
+                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-1.5 text- text-red-600 hover:bg-red-50 rounded-lg">
+                        <LogOut size={14}/> Sign Out
+                      </button>
                     </div>
                   </div>
-                  <div className="border-t p-2">
-                    <button onClick={()=>{setUserMenuOpen(false); router.push("/admin/settings")}} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
-                      <Settings size={16}/> Profile
-                    </button>
-                    <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
-                      <LogOut size={16}/> Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </header>
           <div className="flex-1 overflow-y-auto p-6">{children}</div>
