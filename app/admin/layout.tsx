@@ -1,3 +1,4 @@
+// app/admin/layout.tsx - FIX ya login kuto-redirect
 "use client"
 import { useState, useEffect, useMemo, useCallback, createContext } from "react"
 import { useRouter, usePathname } from "next/navigation"
@@ -84,17 +85,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (pathname === "/admin/login") {
-        if (session) router.replace("/admin")
-        else setCheckingAuth(false)
+        if (session) {
+          router.replace("/admin")
+        } else {
+          setCheckingAuth(false)
+        }
         return
       }
-      if (!session) router.replace("/admin/login")
-      else setCheckingAuth(false)
+      if (!session) {
+        router.replace("/admin/login")
+      } else {
+        setCheckingAuth(false)
+      }
     }
     checkAuth()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!session && pathname!== "/admin/login") router.replace("/admin/login")
-      if (session && pathname === "/admin/login") router.replace("/admin")
+      if (!session && pathname!== "/admin/login") {
+        router.replace("/admin/login")
+      }
+      if (session && pathname === "/admin/login") {
+        router.replace("/admin")
+      }
     })
     const handlePageShow = (e: PageTransitionEvent) => { if (e.persisted) checkAuth() }
     window.addEventListener('pageshow', handlePageShow)
@@ -111,7 +122,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     window.location.replace("/admin/login")
   }, [])
 
-  if (pathname === "/admin/login") return <>{children}</>
+  if (pathname === "/admin/login") {
+    // Kama bado inacheck auth na kuna session, onyesha loading badala ya login form
+    if (checkingAuth) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-[#f6f7fb]">
+          <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )
+    }
+    return <>{children}</>
+  }
 
   if (checkingAuth) {
     return (

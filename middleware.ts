@@ -1,23 +1,12 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl
-  const isAdminRoute = pathname.startsWith('/admin')
-  const isLoginRoute = pathname === '/admin/login'
-
-  // supabase huweka cookie yenye 'auth-token'
-  const hasAuth = req.cookies.getAll().some(c => c.name.includes('auth-token') && c.value)
-
-  if (isAdminRoute &&!isLoginRoute &&!hasAuth) {
-    return NextResponse.redirect(new URL('/admin/login', req.url))
-  }
-
-  if (isLoginRoute && hasAuth) {
-    return NextResponse.redirect(new URL('/admin', req.url))
-  }
-
-  return NextResponse.next()
+export function middleware() {
+  const res = NextResponse.next()
+  // Hii ndiyo inazuia back/forward arrow kuleta page ya zamani kutoka cache
+  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.headers.set('Pragma', 'no-cache')
+  res.headers.set('Expires', '0')
+  return res
 }
 
 export const config = {
