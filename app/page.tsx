@@ -35,7 +35,9 @@ const t = {
   sw: {
     badge: "Wanafunzi 100+ wameipata",
     hero1: "Msaidie mwanafunzi kufaulu",
-    hero2: "Mathematics na Computer",
+    heroMath: "Maths",
+    heroConnector: "na",
+    heroComp: "Computer",
     heroDesc: "Pata nukuu kamili za somo la Computer na Mathematics Form I-VI kulingana na syllabus ya Tanzania. Pakua PDF tayari kwa kuchapisha na kujifunza ukiwa mahali popote TANZANIA",
     pakuaLong: "Pakua Sasa - TZS 1,000/topic", ofa: "Ofa ya Leo",
     pdf1: "PDF ya kuchapisha", pdf2: "Chagua topic unayohitaji tu", pdf3: "Pokea PDF yako papo hapo",
@@ -56,7 +58,9 @@ const t = {
   en: {
     badge: "100+ Students Got It",
     hero1: "Help your student excel in",
-    hero2: "Mathematics and Computer",
+    heroMath: "Maths",
+    heroConnector: "and",
+    heroComp: "Computer",
     heroDesc: "Get complete notes for Computer and Mathematics Form I-VI based on Tanzania syllabus. Download ready-to-print PDF and learn from anywhere in TANZANIA.",
     pakuaLong: "Download Now - TZS 1,000/topic", ofa: "Today's Offer", pdf1: "Printable PDF", pdf2: "Choose only the topic you need", pdf3: "Receive your PDF instantly",
     chagua: "Choose Topic Now",
@@ -85,30 +89,15 @@ export default function HomePage() {
     const fetchCounts = async () => {
       const { data, error } = await supabase.from("topics_catalog").select("*")
       if (error ||!data) return
-
       const map: CountMap = {}
       baseKitabu.forEach(b => { map[b.form] = { math: 0, cs: 0 } })
-
       ;(data as TopicRowDB[]).forEach((row) => {
         let form = row.form_name
         if (row.category === "MAZOEZI") form = "Mazoezi"
         else if (row.category === "BONUS") form = "Bonus"
         if (!form ||!map[form]) return
-
-        // FIX: Tumia subject column moja kwa moja kama inavyotumika kwenye /notes page
-        // Hii itahakikisha idadi ya Computer inaendana na list ya supabase (29 badala ya 30)
         const subjectField = (row.subject?? "").toLowerCase().trim()
-        let isCS: boolean
-
-        if (subjectField) {
-          // Kama subject ipo, iamini 100% - ndiyo chanzo cha ukweli kutoka supabase
-          isCS = subjectField.includes("computer") || subjectField === "cs" || subjectField === "ict" || subjectField === "computing" || subjectField === "comp"
-        } else {
-          // Fallback tu kama subject haipo kabisa - tafuta neno kamili "computer" tu, si "comp"
-          const combined = `${row.full_key?? ""} ${row.topic_name?? ""}`.toLowerCase()
-          isCS = combined.includes("computer")
-        }
-
+        const isCS = subjectField? (subjectField.includes("computer") || subjectField === "cs" || subjectField === "ict" || subjectField === "computing" || subjectField === "comp") : `${row.full_key?? ""} ${row.topic_name?? ""}`.toLowerCase().includes("computer")
         if (isCS) map[form].cs += 1
         else map[form].math += 1
       })
@@ -118,10 +107,13 @@ export default function HomePage() {
   }, [])
 
   const kitabuData = baseKitabu.map(b => ({
- ...b,
+   ...b,
     mathTopics: counts[b.form]?.math?? 0,
     csTopics: counts[b.form]?.cs?? 0,
   }))
+
+  const totalMath = Object.values(counts).reduce((a, b) => a + b.math, 0)
+  const totalCS = Object.values(counts).reduce((a, b) => a + b.cs, 0)
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -149,7 +141,7 @@ export default function HomePage() {
             <Users size={14}/> {tr.badge}
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
-            {tr.hero1} <span className="text-[#1d4ed8]">{tr.hero2}</span>
+            {tr.hero1} <span className="text-[#1d4ed8]">{tr.heroMath}</span> <span className="text-black">{tr.heroConnector}</span> <span className="text-[#1d4ed8]">{tr.heroComp}</span>
           </h1>
           <p className="mt-3 text-gray-600 text-sm leading-relaxed">{tr.heroDesc}</p>
           <div className="mt-5 flex gap-3">
@@ -157,7 +149,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="bg-white border-2 border-blue-100 rounded-xl p-5 shadow-xl relative">
-          <div className="absolute -top-2 -right-2 bg-gradient-to-br from-amber-300 to-yellow-500 text-black text-xs font-black px-3 py-1 rounded-full shadow-md border border-yellow-200">-50% OFF</div>
+          <div className="absolute -top-2 -right-2 bg-gradient-to-br from-pink-500 to-pink-600 text-white text-xs font-black px-3 py-1 rounded-full shadow-md border border-pink-300">-50% OFF</div>
           <h3 className="font-bold">{tr.ofa}</h3>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-3xl font-black text-[#1d4ed8]">1,000</span>
@@ -176,7 +168,9 @@ export default function HomePage() {
       <section id="ndani" className="bg-gray-50 py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-extrabold text-center">{tr.nukuuTitle}</h2>
-          <p className="text-center text-gray-600 mt-2 text-sm max-w-2xl mx-auto">{tr.nukuuDesc}</p>
+          <p className="text-center text-gray-600 mt-2 text-sm max-w-3xl mx-auto">
+            {tr.nukuuDesc}. {lang === 'sw'? `Jumla ya topic zilizopo ni ${totalMath || 56}/${totalCS || 29} za maths na computer.` : `Total topics available are ${totalMath || 56}/${totalCS || 29} for maths and computer.`}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             {kitabuData.map((item) => {
               const total = item.mathTopics + item.csTopics;
@@ -202,7 +196,7 @@ export default function HomePage() {
                     </div>
                     <div className="relative z-10 flex flex-col items-center justify-center text-center mt-2">
                       <h4 className="font-black text-blue-900 text-xl tracking-tight">{item.form}</h4>
-                      <p className="text- font-bold text-blue-700 mt-1 uppercase tracking-widest">Math / Computer</p>
+                      <p className="font-bold text-blue-700 mt-1 uppercase tracking-widest text-xs">Math / Computer</p>
                     </div>
                   </div>
                   <div className="p-3.5 bg-white">
