@@ -5,7 +5,17 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { User, Lock, ArrowLeft, Calculator } from "lucide-react"
 
-export default function AdminLoginPage() {
+type DbUser = {
+  id: number | string
+  name?: string | null
+  email?: string | null
+  password?: string | null
+  description?: string | null
+  phone?: string | null
+  username?: string | null
+}
+
+export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -13,49 +23,75 @@ export default function AdminLoginPage() {
   const [msg, setMsg] = useState("")
 
   useEffect(() => {
-    localStorage.removeItem("mwalimu_admin_authed")
-    localStorage.removeItem("mwalimu_admin_role")
-    localStorage.removeItem("mwalimu_admin_id")
-    localStorage.removeItem("mwalimu_admin_name")
-    localStorage.removeItem("mwalimu_admin_email")
-    localStorage.removeItem("mwalimu_admin_last_activity")
+    localStorage.clear()
     sessionStorage.removeItem("hasLoginBeforeAdmin")
     window.history.replaceState(null, "", "/login")
   }, [])
+
+  const findUserInTable = async (table: string, inputLower: string, inputRaw: string): Promise<DbUser | null> => {
+    const { data } = await supabase.from(table).select("*").ilike("email", inputLower).limit(1).maybeSingle()
+    if (data) return data as DbUser
+    const { data: byName } = await supabase.from(table).select("*").ilike("name", inputLower).limit(1).maybeSingle()
+    if (byName) return byName as DbUser
+    try {
+      const { data: byPhone } = await supabase.from(table).select("*").eq("phone", inputRaw).limit(1).maybeSingle()
+      if (byPhone) return byPhone as DbUser
+    } catch {}
+    return null
+  }
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMsg("")
     try {
-      const emailLower = email.toLowerCase().trim()
+      const inputRaw = email.trim()
+      const emailLower = inputRaw.toLowerCase()
       const passLower = password.trim().toLowerCase()
+      const passRaw = password.trim()
+
+      if (!inputRaw || !passRaw) throw new Error("Jaza username na password")
 
       if ((emailLower === "admin" && passLower === "admin123") || (emailLower === "mwalimu" && passLower === "mwalimu2026")) {
+        localStorage.setItem("mwalimu_authed", "true")
+        localStorage.setItem("mwalimu_role", "super admin")
         localStorage.setItem("mwalimu_admin_authed", "true")
         localStorage.setItem("mwalimu_admin_role", "super admin")
-        localStorage.setItem("mwalimu_admin_name", emailLower)
-        localStorage.setItem("mwalimu_admin_id", "0")
-        localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
-        window.history.replaceState(null, "", "/admin/login")
+        localStorage.setItem("mwalimu_name", emailLower)
+        localStorage.setItem("mwalimu_id", "0")
+        document.cookie = `mwalimu_role=super admin; path=/; max-age=86400`
         router.push("/admin")
         return
       }
 
-      const { data, error } = await supabase.from("admins").select("*").eq("email", emailLower).single()
-      if (error ||!data) throw new Error("Email haipo kwenye admins table")
-      if ((data.password || "").toLowerCase().trim()!== passLower) throw new Error("Password si sahihi")
+      let foundUser: DbUser | null = null
+      for (const table of ["admins", "teachers", "students", "parents"]) {
+        foundUser = await findUserInTable(table, emailLower, inputRaw)
+        if (foundUser) break
+      }
+      if (!foundUser) throw new Error("Username / Email haipo")
 
+      const dbPassLower = (foundUser.password || "").toString().toLowerCase().trim()
+      const dbPassRaw = (foundUser.password || "").toString().trim()
+      if (dbPassLower !== passLower && dbPassRaw !== passRaw) throw new Error("Password si sahihi")
+
+      const role = (foundUser.description || "").toString().toLowerCase().trim()
+      localStorage.setItem("mwalimu_authed", "true")
+      localStorage.setItem("mwalimu_role", role)
       localStorage.setItem("mwalimu_admin_authed", "true")
-      localStorage.setItem("mwalimu_admin_id", String(data.id))
-      localStorage.setItem("mwalimu_admin_role", data.description)
-      localStorage.setItem("mwalimu_admin_name", data.name)
-      localStorage.setItem("mwalimu_admin_email", data.email)
-      localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
-      window.history.replaceState(null, "", "/login")
+      localStorage.setItem("mwalimu_admin_role", role)
+      localStorage.setItem("mwalimu_id", String(foundUser.id))
+      localStorage.setItem("mwalimu_name", foundUser.name || inputRaw)
+      document.cookie = `mwalimu_role=${role}; path=/; max-age=86400`
+
+      if (role !== "admin" && !role.includes("super")) {
+        setMsg(`Umeingia kama ${role} - dashboard ya ${role} bado inaandaliwa. Unaelekezwa admin kwa muda.`)
+        setTimeout(() => router.push("/admin"), 1200)
+        return
+      }
       router.push("/admin")
     } catch (err: unknown) {
-      const message = err instanceof Error? err.message : "Kosa limetokea"
+      const message = err instanceof Error ? err.message : "Kosa limetokea"
       setMsg(message)
     } finally {
       setLoading(false)
@@ -70,15 +106,15 @@ export default function AdminLoginPage() {
       </div>
       <div className="w-full max-w-sm mx-auto border border-gray-200 rounded-xl p-5 bg-white shadow-sm" style={{ maxWidth: '380px' }}>
         <form onSubmit={handleEmailAuth} className="space-y-4">
-          <div><label className="text-sm font-semibold">Email:</label><div className="relative mt-1.5"><User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/><input type="text" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@mwalimumath.co.tz" className="w-full pl-10 pr-3 py-2.5 border border-[#4F5AAE] rounded-lg text-sm outline-none"/></div></div>
-          <div><label className="text-sm font-semibold">Password:</label><div className="relative mt-1.5"><Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/><input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="jina la mwanzo" className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none"/></div></div>
-          {msg && <div className="text-xs p-2.5 rounded-lg bg-red-50 border border-red-100 text-red-600">{msg}</div>}
-          <button type="submit" disabled={loading} className="w-full bg-[#4F5AAE] text-white py-2.5 rounded-lg font-semibold text-sm cursor-pointer hover:bg-[#3f4a9a] disabled:cursor-not-allowed disabled:opacity-60 transition-colors">{loading?"...":"Log in"}</button>
+          <div><label className="text-sm font-semibold">Username:</label><div className="relative mt-1.5"><User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/><input type="text" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="username" className="w-full pl-10 pr-3 py-2.5 border border-[#4F5AAE] rounded-lg text-sm outline-none"/></div></div>
+          <div><label className="text-sm font-semibold">Password:</label><div className="relative mt-1.5"><Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"/><input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="password" className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none"/></div></div>
+          {msg && <div className="text-xs p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700">{msg}</div>}
+          <button type="submit" disabled={loading} className="w-full bg-[#4F5AAE] text-white py-2.5 rounded-lg font-semibold text-sm cursor-pointer hover:bg-[#3f4a9a] disabled:opacity-60">{loading?"...":"Log in"}</button>
         </form>
       </div>
       <div className="mt-5 text-center space-y-3">
-        <p className="text-xs text-gray-500">Don&apos;t have an account? <Link href="/" className="text-[#4F5AAE] font-semibold hover:underline cursor-pointer">Click here</Link></p>
-        <Link href="/notes" className="inline-flex items-center gap-1.5 text-xs text-[#4F5AAE] font-medium hover:underline cursor-pointer"><ArrowLeft size={14}/> Back to notes</Link>
+        <p className="text-xs text-gray-500">Don&apos;t have an account? <Link href="/" className="text-[#4F5AAE] font-semibold hover:underline">Click here</Link></p>
+        <Link href="/notes" className="inline-flex items-center gap-1.5 text-xs text-[#4F5AAE] font-medium hover:underline"><ArrowLeft size={14}/> Back to notes</Link>
       </div>
     </div>
   )
