@@ -84,12 +84,12 @@ export default function LoginPage() {
       localStorage.setItem("mwalimu_name", foundUser.name || inputRaw)
       document.cookie = `mwalimu_role=${role}; path=/; max-age=86400`
 
-      if (role !== "admin" && !role.includes("super")) {
-        setMsg(`Umeingia kama ${role} - dashboard ya ${role} bado inaandaliwa. Unaelekezwa admin kwa muda.`)
-        setTimeout(() => router.push("/admin"), 1200)
-        return
-      }
-      router.push("/admin")
+      if (role.includes("super") || role === "admin") router.push("/admin")
+      else if (role === "teacher") router.push("/teacher/dashboard")
+      else if (role === "student") router.push("/student/dashboard")
+      else if (role === "parent") router.push("/parent/dashboard")
+      else router.push("/login")
+
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Kosa limetokea"
       setMsg(message)
