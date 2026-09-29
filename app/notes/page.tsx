@@ -297,7 +297,7 @@ function NotesContent() {
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#1d4ed8] cursor-pointer">
               <ArrowLeft size={16} /> {tr.rudi}
             </Link>
-            <Link href="/admin/login" className="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm cursor-pointer">
+            <Link href="/login" className="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 shadow-sm cursor-pointer">
               Login
             </Link>
           </div>

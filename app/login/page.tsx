@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
     localStorage.removeItem("mwalimu_admin_email")
     localStorage.removeItem("mwalimu_admin_last_activity")
     sessionStorage.removeItem("hasLoginBeforeAdmin")
-    window.history.replaceState(null, "", "/admin/login")
+    window.history.replaceState(null, "", "/login")
   }, [])
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
       localStorage.setItem("mwalimu_admin_name", data.name)
       localStorage.setItem("mwalimu_admin_email", data.email)
       localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
-      window.history.replaceState(null, "", "/admin/login")
+      window.history.replaceState(null, "", "/login")
       router.push("/admin")
     } catch (err: unknown) {
       const message = err instanceof Error? err.message : "Kosa limetokea"
