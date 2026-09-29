@@ -85,9 +85,9 @@ export default function LoginPage() {
       document.cookie = `mwalimu_role=${role}; path=/; max-age=86400`
 
       if (role.includes("super") || role === "admin") router.push("/admin")
-      else if (role === "teacher") router.push("/teacher/dashboard")
-      else if (role === "student") router.push("/student/dashboard")
-      else if (role === "parent") router.push("/parent/dashboard")
+      else if (role === "teacher") router.push("/teacher")
+      else if (role === "student") router.push("/student")
+      else if (role === "parent") router.push("/parent")
       else router.push("/login")
 
     } catch (err: unknown) {
