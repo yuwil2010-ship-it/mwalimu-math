@@ -56,7 +56,7 @@ const subjects = ["Mathematics", "Computer"] as const
 const NETWORKS = [
   { id: "Vodacom", label: "Vodacom", sub: "M-Pesa", prefixes: ["74","75","76"], color: "bg-red-600" },
   { id: "Yas", label: "Yas", sub: "Mixx", prefixes: ["71","65","67"], color: "bg-blue-600" },
-  { id: "【entity-Airtel¦canonical_name=Airtel】", label: "【entity-Airtel¦canonical_name=Airtel】", sub: "Money", prefixes: ["68","69","78","79"], color: "bg-red-500" },
+  { id: "Airtel", label: "Airtel", sub: "Money", prefixes: ["68","69","78","79"], color: "bg-red-500" },
   { id: "Halotel", label: "Halotel", sub: "HaloPesa", prefixes: ["62"], color: "bg-orange-500" },
 ] as const
 
