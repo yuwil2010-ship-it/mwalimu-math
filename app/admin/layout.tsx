@@ -140,12 +140,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     localStorage.removeItem("mwalimu_admin_email")
     localStorage.removeItem("mwalimu_admin_last_activity")
     sessionStorage.removeItem("hasLoginBeforeAdmin")
-    window.history.replaceState(null, "", "/admin/login")
-    window.location.replace("/admin/login")
+    window.history.replaceState(null, "", "/login")
+    window.location.replace("/login")
   }, [])
 
   useEffect(()=>{
-    if(pathname === "/admin/login") return
+    if(pathname === "/login") return
     const updateActivity = () => localStorage.setItem("mwalimu_admin_last_activity", String(Date.now()))
     updateActivity()
     const events: (keyof WindowEventMap)[] = ["mousemove","keydown","click","scroll","touchstart"]
@@ -165,19 +165,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(()=>{
     const checkAuth = () => {
       const authed = localStorage.getItem("mwalimu_admin_authed") === "true"
-      if (pathname === "/admin/login") {
+      if (pathname === "/login") {
         if (authed) {
           router.replace("/admin")
         } else setCheckingAuth(false)
         return
       }
       if (!authed){
-        router.replace("/admin/login")
-        window.history.replaceState(null, "", "/admin/login")
+        router.replace("/login")
+        window.history.replaceState(null, "", "/login")
         sessionStorage.removeItem("hasLoginBeforeAdmin")
       } else {
         if(pathname === "/admin" &&!sessionStorage.getItem("hasLoginBeforeAdmin")){
-          window.history.replaceState(null, "", "/admin/login")
+          window.history.replaceState(null, "", "/login")
           window.history.pushState(null, "", "/admin")
           sessionStorage.setItem("hasLoginBeforeAdmin", "true")
         }
@@ -209,7 +209,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   },[router, userInfo.id])
 
-  if (pathname === "/admin/login") {
+  if (pathname === "/login") {
     if (checkingAuth) {
       return (
         <div className="h-screen flex items-center justify-center bg-[#f6f7fb]">
